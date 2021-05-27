@@ -1,7 +1,164 @@
 #!/usr/bin/python3
 
-def main()
-    pass
+import argparse
+import sys
+
+try:
+    import argcomplete
+    USE_ARGCOMPLETE = True
+except ImportError:
+    USE_ARGCOMPLETE = False
+
+class Thinbox(object):
+    def __init__(self):
+        super().__init__()
+
+def get_parser():
+    parser = argparse.ArgumentParser(#usage="%(prog)s <command> [opts] [args]",
+        description="Thinbox is a tool for..",
+        formatter_class=Formatter,
+    )
+    subparsers = parser.add_subparsers(
+        title="commands",
+        dest="command",
+    )
+
+    pull_parser = subparsers.add_parser(
+        "pull",
+        help="pull base image from TAG or URL"
+    )
+    pull_parser_mg = pull_parser.add_mutually_exclusive_group(required=True)
+    pull_parser_mg.add_argument(
+        "-t", "--tag",
+        help="TAG of the image you want to pull"
+    )
+    pull_parser_mg.add_argument(
+        "-u", "--url",
+        help="URL of the image you want to pull"
+    )
+
+    # create
+    create_parser = subparsers.add_parser(
+        "create",
+        help="create VM from base image",
+    )
+    create_parser.add_argument(
+        "name",
+        help="name of the VM"
+    )
+    create_parser_mg = create_parser.add_mutually_exclusive_group(required=True)
+    create_parser_mg.add_argument(
+        "-t", "--tag",
+        help="TAG of the image you want to pull"
+    )
+    create_parser_mg.add_argument(
+        "-u", "--url",
+        help="URL of the image you want to pull"
+    )
+
+    # list
+    list_parser = subparsers.add_parser(
+        "list",
+        help="list available VMs"
+    )
+    # remove
+    remove_parser = subparsers.add_parser(
+        "remove",
+        help="remove VM"
+    )
+    # image
+    image_parser = subparsers.add_parser(
+        "image",
+        help="manage base images"
+    )
+    # vm
+    vm_parser = subparsers.add_parser(
+        "vm",
+        help="manage VMs"
+    )
+    # enter
+    enter_parser = subparsers.add_parser(
+        "enter",
+        help="enter VM"
+    )
+    enter_parser.add_argument(
+        "name",
+        help="name of the VM to enter"
+    )
+    # start
+    start_parser = subparsers.add_parser(
+        "start",
+        help="start VM"
+    )
+    start_parser.add_argument(
+        "name",
+        help="name of the VM to start"
+    )
+    # stop
+    stop_parser = subparsers.add_parser(
+        "stop",
+        help="stop VM"
+    )
+    stop_parser.add_argument(
+        "name",
+        help="name of the VM to stop"
+    )
+
+    return parser
+
+
+class Formatter(argparse.HelpFormatter):
+    def _format_action(self, action):
+        if isinstance(action, argparse._SubParsersAction):
+            parts = []
+            for i in action._get_subactions():
+                parts.append("%*s%-21s %s" % (self._current_indent, "", i.metavar, i.help))
+            return "\n".join(parts)
+        return super(Formatter, self)._format_action(action)
+
+# thinbox create
+#            |
+#            +-- -i/--image <image> <vm_name>
+#            +-- -u/--url   <url>   <vm_name>
+#
+# thinbox pull <image>
+#          |
+#          +-- -u/--url <url>
+#
+# thinbox image
+#           |
+#           +-- list/ls
+#           +-- remove/rm <image>
+#                     |
+#                     +-- -a
+# thinbox
+#     |
+#     +-- list/ls
+#     +-- remove/rm <vm_name>
+#               |
+#               +-- -a
+#
+# thinbox vm
+#        |
+#        +-- list/ls
+#        +-- remove/rm
+#                  |
+#                  +-- -a
+# thinbox enter <vm_name>
+# thinbox start <vm_name>
+# thinbox stop  <vm_name>
+
+
+def main():
+    parser = get_parser()
+    if USE_ARGCOMPLETE:
+        argcomplete.autocomplete(parser)
+    args = parser.parse_args()
+
+    if not args.command:
+        parser.print_help()
+        parser.error("Please specify a command")
+
 
 if __name__ == "__main__":
     try:
