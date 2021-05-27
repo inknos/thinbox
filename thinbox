@@ -1,0 +1,12 @@
+#!/usr/bin/python3
+
+def main()
+    pass
+
+if __name__ == "__main__":
+    try:
+        main()
+    except RuntimeError as ex:
+        print("Error:", ex, file=sys.stderr)
+        sys.exit(1)
+    sys.exit(0)
