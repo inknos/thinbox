@@ -1,6 +1,10 @@
 #!/usr/bin/python3
+# PYTHON_ARGCOMPLETE_OK
 
 import argparse
+import distutils.sysconfig
+import os
+import subprocess
 import sys
 
 try:
@@ -9,11 +13,99 @@ try:
 except ImportError:
     USE_ARGCOMPLETE = False
 
+
+# dbox executable
+THINBOX = os.path.basename(sys.argv[0])
+
+# config directory according to XDG
+XDG_CONFIG_HOME = os.environ.get("XDG_CONFIG_HOME", os.path.expanduser("~/.config"))
+CONFIG_DIR = os.path.join(XDG_CONFIG_HOME, "dbox")
+USER_CONFIG = os.path.join(CONFIG_DIR, "user.dbox.yaml")
+
+# cache directory according to XDG
+XDG_CACHE_HOME = os.environ.get("XDG_CACHE_HOME", os.path.expanduser("~/.cache"))
+CACHE_DIR = os.path.join(XDG_CACHE_HOME, "thinbox")
+
+# detect if running in a container
+THINBOX_CONTAINER = os.environ.get("THINBOX_CONTAINER", "0") == "1"
+
+# additional variables set inside a container
+THINBOX_STACK = os.environ.get("THINBOX_STACK", None)
+THINBOX_BASE_IMAGE_NAME = os.environ.get("THINBOX_BASE_IMAGE_NAME", None)
+THINBOX_BASE_IMAGE_VERSION = os.environ.get("THINBOX_BASE_IMAGE_VERSION", None)
+
+# environment variables used in the path tweaks
+PATHS_ENV = {
+    "PYTHON3_SITEARCH": distutils.sysconfig.get_python_lib(1),
+    "PYTHON3_SITELIB": distutils.sysconfig.get_python_lib(),
+    "LIBDIR": distutils.sysconfig.get_config_var("LIBDIR"),
+}
+
+# paths to be used in project path tweaks
+PATHS = {
+    "CMAKE_MODULE_PATH": ["/usr/share/cmake/Modules"],
+    "CMAKE_PREFIX_PATH": ["/usr"],
+    "CPATH": ["/usr/include"],
+    "LD_LIBRARY_PATH": [PATHS_ENV["LIBDIR"]],
+    "LIBRARY_PATH": [PATHS_ENV["LIBDIR"]],
+    "PATH": ["/usr/sbin", "/usr/bin"],
+    "PKG_CONFIG_PATH": [distutils.sysconfig.get_config_var("LIBPC")],
+    "PKG_CONFIG_SYSTEM_INCLUDE_PATH": ["/usr/include"],
+    "PYTHONPATH": [PATHS_ENV["PYTHON3_SITEARCH"], PATHS_ENV["PYTHON3_SITELIB"]],
+}
+
+def is_virt_enabled():
+    env = os.environ.copy()
+    env["LC_LANG"] = "C"
+    out = subprocess.run(["lscpu"], env=env, stdout=subprocess.PIPE)
+    return "VT-x" in str(out.stdout)
+
 class Thinbox(object):
     def __init__(self):
         super().__init__()
 
+    def pull(self):
+        pass
+
+    def create(self):
+        pass
+
 def get_parser():
+    """
+    Returns a parser with this structure
+    thinbox create
+               |
+               +-- -t/--tag <image> <vm_name>
+               +-- -u/--url <url>   <vm_name>
+
+    thinbox pull
+             |
+             +-- -t/--tag <tag>
+             +-- -u/--url <url>
+
+    thinbox image
+              |
+              +-- list/ls
+              +-- remove/rm <image>
+                        |
+                        +-- -a
+    thinbox
+        |
+        +-- list/ls
+        +-- remove/rm <vm_name>
+                  |
+                  +-- -a
+
+    thinbox vm
+           |
+           +-- list/ls
+           +-- remove/rm <vm_name>
+                     |
+                     +-- -a
+    thinbox enter <vm_name>
+    thinbox start <vm_name>
+    thinbox stop  <vm_name>
+    """
     parser = argparse.ArgumentParser(#usage="%(prog)s <command> [opts] [args]",
         description="Thinbox is a tool for..",
         formatter_class=Formatter,
@@ -116,40 +208,12 @@ class Formatter(argparse.HelpFormatter):
             return "\n".join(parts)
         return super(Formatter, self)._format_action(action)
 
-# thinbox create
-#            |
-#            +-- -i/--image <image> <vm_name>
-#            +-- -u/--url   <url>   <vm_name>
-#
-# thinbox pull <image>
-#          |
-#          +-- -u/--url <url>
-#
-# thinbox image
-#           |
-#           +-- list/ls
-#           +-- remove/rm <image>
-#                     |
-#                     +-- -a
-# thinbox
-#     |
-#     +-- list/ls
-#     +-- remove/rm <vm_name>
-#               |
-#               +-- -a
-#
-# thinbox vm
-#        |
-#        +-- list/ls
-#        +-- remove/rm
-#                  |
-#                  +-- -a
-# thinbox enter <vm_name>
-# thinbox start <vm_name>
-# thinbox stop  <vm_name>
 
 
 def main():
+    if not is_virt_enabled():
+        print("Virtualization not enabled")
+        exit(1)
     parser = get_parser()
     if USE_ARGCOMPLETE:
         argcomplete.autocomplete(parser)
