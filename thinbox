@@ -6,6 +6,7 @@ import distutils.sysconfig
 import hashlib
 import logging
 import os
+import re
 import requests
 import shutil
 import subprocess
@@ -37,6 +38,7 @@ THINBOX_HASH_DIR  = os.environ.get("THINBOX_HASH_DIR",  os.path.join(CACHE_DIR, 
 
 # virtual variables
 THINBOX_MEMORY="1024"
+THINBOX_SSH_OPTIONS="-o StrictHostKeyChecking=no -o GlobalKnownHostsFile=/dev/null -o UserKnownHostsFile=/dev/null"
 
 # detect if running in a container
 THINBOX_CONTAINER = os.environ.get("THINBOX_CONTAINER", "0") == "1"
@@ -99,6 +101,9 @@ class Thinbox(object):
     def image_rm(self):
         pass
 
+    def enter(self, name):
+        _ssh_connect(name)
+
     def create(self):
         print("create")
 
@@ -125,7 +130,7 @@ class Thinbox(object):
         p_qemu = subprocess.Popen([
             'qemu-img', 'create',
             '-f', 'qcow2', '-o',
-            'backing_file='+str(base)+',backing_fmt=qcow2', str(image) ],
+            'backing_file='+ base +',backing_fmt=qcow2', image],
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE
         )
@@ -135,8 +140,8 @@ class Thinbox(object):
             p_qemu.stderr.read()))
 
         p_virt_sysprep = subprocess.Popen([
-            'virt-sysprep', '-a', str(image),
-            '--hostname', str(name), '--ssh-inject', 'root',
+            'virt-sysprep', '-a', image,
+            '--hostname', name, '--ssh-inject', 'root',
             '--selinux-relabel'],
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE
@@ -148,8 +153,8 @@ class Thinbox(object):
 
         p_virt_install = subprocess.Popen([
             'virt-install', '--network=bridge:virbr0',
-            '--name', str(name), '--memory', THINBOX_MEMORY,
-            '--disk', str(image),
+            '--name', name, '--memory', THINBOX_MEMORY,
+            '--disk', image,
             '--import',
             '--os-type=linux',
             '--os-variant=none',
@@ -161,6 +166,28 @@ class Thinbox(object):
             p_virt_install.stdout.read()))
         logging.debug("virt-install: {}".format(
             p_virt_install.stderr.read()))
+
+def _get_mac(name):
+    p_virsh = subprocess.Popen(['virsh', 'domiflist', name],
+            stdout=subprocess.PIPE)
+    mac = p_virsh.stdout.read().decode('utf8')
+    return mac.strip()[-17:]
+
+def _get_ip(name):
+    mac = _get_mac(name)
+    p_arp = subprocess.Popen(['arp', '-na'], stdout=subprocess.PIPE)
+    out = p_arp.stdout.read().decode('utf8')
+    ip = [ ip for ip in out.strip().split('\n') if mac in ip ][0]
+    ip = re.findall( r'[0-9]+(?:\.[0-9]+){3}', ip )[0]
+    return ip
+
+def _ssh_connect(name):
+    mac = _get_mac(name)
+    ip = _get_ip(name)
+    logging.debug("ip: {}".format(ip))
+    logging.debug("mac: {}".format(mac))
+    logging.debug("options: {}".format(THINBOX_SSH_OPTIONS))
+    os.system("ssh {} root@{}".format(THINBOX_SSH_OPTIONS, ip))
 
 def _image_list():
     image_list = []
@@ -452,6 +479,9 @@ def main():
         tb = Thinbox()
         if args.image:
             tb.create_from_image(args.image, args.name)
+    elif args.command == "enter":
+        tb = Thinbox()
+        tb.enter(args.name)
 
 
 if __name__ == "__main__":
