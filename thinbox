@@ -195,15 +195,22 @@ def _image_list():
         for file in files:
             image_list.append(file)
     print(THINBOX_BASE_DIR)
-    print("Showing", len(image_list), "image/s.")
     print()
+    print("{:<50} {:<20}".format("IMAGE", "HASH"))
     for name in image_list:
-        print(name)
+        print("{:<50} ".format(name), end="")
+        none = True
+        hashes = []
         for hashfunc in sorted(RHEL_IMAGE_HASH):
             if os.path.exists(os.path.join(THINBOX_HASH_DIR, name + "." + hashfunc + ".OK")):
-                print ("  {:<15} {:<10}".format(hashfunc, "OK"))
-            else:
-                print ("  {:<15} {:<10}".format(hashfunc, "NOTOK"))
+                hashes.append(hashfunc)
+                none = False
+        if none:
+            print("NONE", end="")
+        else:
+            print(",".join(hashes), end="")
+
+        print()
 
 def download_image(url):
     filename = os.path.split(url)[-1]
@@ -215,20 +222,26 @@ def download_image(url):
     #TODO download hash
     hashpath = os.path.join(THINBOX_HASH_DIR, filename)
     for ext in RHEL_IMAGE_HASH:
-        _download(url + ext, "." + hashpath + ext)
-    if check_hash(filename, "md5"):
+        _download(url + "." + ext, hashpath + "." + ext)
+    if check_hash(filename, "sha1"):
         print("Image downloaded and ready to use")
 
-def check_hash(filename, hash="md5"):
-    if hash == "md5" or hash == "md5sum":
+def check_hash(filename, hashname="md5"):
+    if hashname == "md5" or hashname == "md5sum":
         hashfunc = hashlib.md5()
-        ext = ".MD5SUM"
+        ext = "MD5SUM"
+    elif hashname == "sha1" or hashname == "sha1sum":
+        hashfunc = hashlib.sha1()
+        ext = "SHA1SUM"
+    else:
+        logger.error("Not a valid hash function: {}".format(hashname))
+
     result, hh, hf = _check_hash(filename, ext, hashfunc)
 
     if not result:
         logging.error("Hashes do not match")
     logging.debug("File hash is {}.".format(hf))
-    logging.debug("Expected {} is {}.".format(hash, hh))
+    logging.debug("Expected {} is {}.".format(hashname, hh))
     return result
 
 def _check_hash(filename, ext, hashfunc):
@@ -237,7 +250,7 @@ def _check_hash(filename, ext, hashfunc):
     #check hash file ok
     h = hashfunc
     filepath = os.path.join(THINBOX_BASE_DIR, filename)
-    hashpath = os.path.join(THINBOX_HASH_DIR, filename + ext)
+    hashpath = os.path.join(THINBOX_HASH_DIR, filename + "." + ext)
     if not os.path.exists(filepath):
         logging.warning("File {} does not exists.".filepath())
         return
@@ -304,8 +317,10 @@ def get_parser():
     Returns a parser with this structure
     thinbox create
                |
-               +-- -t/--tag <image> <vm_name>
-               +-- -u/--url <url>   <vm_name>
+               +-- -i/--image <image> <vm_name>
+               +-- -p/--path  <path>  <vm_name>
+               +-- -t/--tag   <image> <vm_name>
+               +-- -u/--url   <url>   <vm_name>
 
     thinbox pull
              |
@@ -331,6 +346,7 @@ def get_parser():
            +-- remove/rm <vm_name>
                      |
                      +-- -a
+
     thinbox enter <vm_name>
     thinbox start <vm_name>
     thinbox stop  <vm_name>
