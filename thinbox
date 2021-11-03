@@ -109,11 +109,6 @@ class Thinbox(object):
 
     def create_from_image(self, base_name, name):
 
-        #virt-sysprep -a $image --hostname $name --ssh-inject root \
-        #             --selinux-relabel >/dev/null
-        #virt-install --network=bridge:virbr0 --name $name --memory $THIN_MEMORY \
-        #             --disk $image --import --os-type=linux --os-variant=none \
-        #             --noautoconsole >/dev/null
         if not os.path.exists(THINBOX_IMAGE_DIR):
             os.makedirs(THINBOX_IMAGE_DIR)
         image = os.path.join(THINBOX_IMAGE_DIR, name + ".qcow2")
@@ -121,11 +116,9 @@ class Thinbox(object):
         if not os.path.exists(base):
             logging.error("Image {} not found in {}.".format(base, THINBOX_BASE_DIR))
 
-        #ensure_domain_undefined $name
+        # ensure_domain_undefined $name
 
         # ensure image does not exist
-
-        # enable logger for stdout and stderr
 
         p_qemu = subprocess.Popen([
             'qemu-img', 'create',
@@ -220,11 +213,14 @@ def download_image(url):
         os.makedirs(CACHE_DIR)
     _download(url, filepath)
     #TODO download hash
-    hashpath = os.path.join(THINBOX_HASH_DIR, filename)
-    for ext in RHEL_IMAGE_HASH:
-        _download(url + "." + ext, hashpath + "." + ext)
-    if check_hash(filename, "sha1"):
-        print("Image downloaded and ready to use")
+    # this works for rhel
+    #hashpath = os.path.join(THINBOX_HASH_DIR, filename)
+    #for ext in RHEL_IMAGE_HASH:
+    #    _download(url + "." + ext, hashpath + "." + ext)
+    if check_hash(filename, "sha256"):
+        print("Image downloaded, verified, and ready to use")
+    else:
+        print("Image downloaded and ready to use but not verified.")
 
 def check_hash(filename, hashname="md5"):
     if hashname == "md5" or hashname == "md5sum":
@@ -233,36 +229,43 @@ def check_hash(filename, hashname="md5"):
     elif hashname == "sha1" or hashname == "sha1sum":
         hashfunc = hashlib.sha1()
         ext = "SHA1SUM"
+    elif hashname == "sha256" or hashname == "sha256sum":
+        hashfunc = hashlib.sha256()
+        ext = "SHA256SUM"
     else:
         logger.error("Not a valid hash function: {}".format(hashname))
-
     result, hh, hf = _check_hash(filename, ext, hashfunc)
 
-    if not result:
-        logging.error("Hashes do not match")
     logging.debug("File hash is {}.".format(hf))
     logging.debug("Expected {} is {}.".format(hashname, hh))
+    if not result:
+        logging.info("Continue withouth hash verification")
+        return result
+    if not hh == hf:
+        logging.error("Hashes do not match")
+        sys.exit(1)
+
     return result
 
 def _check_hash(filename, ext, hashfunc):
     """"This function returns the SHA-1 hash
     of the file passed into it"""
-    #check hash file ok
     h = hashfunc
     filepath = os.path.join(THINBOX_BASE_DIR, filename)
     hashpath = os.path.join(THINBOX_HASH_DIR, filename + "." + ext)
     if not os.path.exists(filepath):
-        logging.warning("File {} does not exists.".filepath())
-        return
+        logging.error("Image file {} does not exists.".format(filepath))
+        sys.exit(1)
     if not os.path.exists(hashpath):
-        logging.warning("File {} does not exists.".format(filepath))
-        return
+        logging.error("Hash file {} does not exists.".format(filepath))
+        return False, "", ""
     # if hash/imagename.hash.OK exists return True
     if os.path.exists(hashpath + ".OK"):
         with open(hashpath + ".OK", 'r') as file:
             file.readline()
             last = file.readline()
         hf = last.strip().split(' ')[-1]
+        print("Found file that verifies a previous hash check for {}".format(ext))
         return True, hf, hf
 
     with open(hashpath, 'r') as file:
@@ -284,9 +287,7 @@ def _check_hash(filename, ext, hashfunc):
 
 def _download(url, filepath):
     # check file exist
-    if not os.path.exists(filepath):
-        _download(url, filepath)
-    else:
+    if os.path.exists(filepath):
         logging.debug("File {} exists.".format(filepath))
         return
     with open(filepath, 'wb') as f:
@@ -305,12 +306,6 @@ def _download(url, filepath):
                 sys.stdout.write('\r[{}{}]'.format('█' * done, '.' * (50-done)))
                 sys.stdout.flush()
     sys.stdout.write('\n')
-
-def touch(fname):
-    if os.path.exists(fname):
-        os.utime(fname, None)
-    else:
-        open(fname, 'a').close()
 
 def get_parser():
     """
