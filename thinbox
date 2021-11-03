@@ -31,8 +31,12 @@ XDG_CACHE_HOME = os.environ.get("XDG_CACHE_HOME", os.path.expanduser("~/.cache")
 CACHE_DIR = os.path.join(XDG_CACHE_HOME, "thinbox")
 
 # image directory and hashes
+THINBOX_BASE_DIR = os.environ.get("THINBOX_BASE_DIR", os.path.join(CACHE_DIR, "base"))
 THINBOX_IMAGE_DIR = os.environ.get("THINBOX_IMAGE_DIR", os.path.join(CACHE_DIR, "images"))
 THINBOX_HASH_DIR  = os.environ.get("THINBOX_HASH_DIR",  os.path.join(CACHE_DIR, "hash"))
+
+# virtual variables
+THINBOX_MEMORY="1024"
 
 # detect if running in a container
 THINBOX_CONTAINER = os.environ.get("THINBOX_CONTAINER", "0") == "1"
@@ -96,14 +100,74 @@ class Thinbox(object):
         pass
 
     def create(self):
-        pass
+        print("create")
+
+    def create_from_image(self, base_name, name):
+
+        #virt-sysprep -a $image --hostname $name --ssh-inject root \
+        #             --selinux-relabel >/dev/null
+        #virt-install --network=bridge:virbr0 --name $name --memory $THIN_MEMORY \
+        #             --disk $image --import --os-type=linux --os-variant=none \
+        #             --noautoconsole >/dev/null
+        if not os.path.exists(THINBOX_IMAGE_DIR):
+            os.makedirs(THINBOX_IMAGE_DIR)
+        image = os.path.join(THINBOX_IMAGE_DIR, name + ".qcow2")
+        base = os.path.join(THINBOX_BASE_DIR, base_name)
+        if not os.path.exists(base):
+            logging.error("Image {} not found in {}.".format(base, THINBOX_BASE_DIR))
+
+        #ensure_domain_undefined $name
+
+        # ensure image does not exist
+
+        # enable logger for stdout and stderr
+
+        p_qemu = subprocess.Popen([
+            'qemu-img', 'create',
+            '-f', 'qcow2', '-o',
+            'backing_file='+str(base)+',backing_fmt=qcow2', str(image) ],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE
+        )
+        logging.debug("qemu: {}".format(
+            p_qemu.stdout.read()))
+        logging.debug("qemu: {}".format(
+            p_qemu.stderr.read()))
+
+        p_virt_sysprep = subprocess.Popen([
+            'virt-sysprep', '-a', str(image),
+            '--hostname', str(name), '--ssh-inject', 'root',
+            '--selinux-relabel'],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE
+        )
+        logging.debug("virt-sysprep: {}".format(
+            p_virt_sysprep.stdout.read()))
+        logging.debug("virt-sysprep: {}".format(
+            p_virt_sysprep.stderr.read()))
+
+        p_virt_install = subprocess.Popen([
+            'virt-install', '--network=bridge:virbr0',
+            '--name', str(name), '--memory', THINBOX_MEMORY,
+            '--disk', str(image),
+            '--import',
+            '--os-type=linux',
+            '--os-variant=none',
+            '--noautoconsole'],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE
+        )
+        logging.debug("virt-install: {}".format(
+            p_virt_install.stdout.read()))
+        logging.debug("virt-install: {}".format(
+            p_virt_install.stderr.read()))
 
 def _image_list():
     image_list = []
-    for root, dirs, files in os.walk(THINBOX_IMAGE_DIR):
+    for root, dirs, files in os.walk(THINBOX_BASE_DIR):
         for file in files:
             image_list.append(file)
-    print(THINBOX_IMAGE_DIR)
+    print(THINBOX_BASE_DIR)
     print("Showing", len(image_list), "image/s.")
     print()
     for name in image_list:
@@ -116,7 +180,7 @@ def _image_list():
 
 def download_image(url):
     filename = os.path.split(url)[-1]
-    filepath = os.path.join(THINBOX_IMAGE_DIR, filename)
+    filepath = os.path.join(THINBOX_BASE_DIR, filename)
     # check dir exist
     if not os.path.exists(CACHE_DIR):
         os.makedirs(CACHE_DIR)
@@ -145,7 +209,7 @@ def _check_hash(filename, ext, hashfunc):
     of the file passed into it"""
     #check hash file ok
     h = hashfunc
-    filepath = os.path.join(THINBOX_IMAGE_DIR, filename)
+    filepath = os.path.join(THINBOX_BASE_DIR, filename)
     hashpath = os.path.join(THINBOX_HASH_DIR, filename + ext)
     if not os.path.exists(filepath):
         logging.warning("File {} does not exists.".filepath())
@@ -285,6 +349,14 @@ def get_parser():
     )
     create_parser_mg = create_parser.add_mutually_exclusive_group(required=True)
     create_parser_mg.add_argument(
+        "-i", "--image",
+        help="Name of image already downloaded"
+    )
+    create_parser_mg.add_argument(
+        "-p", "--path",
+        help="Path of image you want to create a vm from"
+    )
+    create_parser_mg.add_argument(
         "-t", "--tag",
         help="TAG of the image you want to pull"
     )
@@ -376,6 +448,10 @@ def main():
     elif args.command == "image":
         tb = Thinbox()
         tb.image()
+    elif args.command == "create":
+        tb = Thinbox()
+        if args.image:
+            tb.create_from_image(args.image, args.name)
 
 
 if __name__ == "__main__":
