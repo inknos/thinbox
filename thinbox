@@ -223,10 +223,14 @@ class Thinbox(object):
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE
         )
-        logging.debug("qemu: {}".format(
-            p_qemu.stdout.read()))
-        logging.debug("qemu: {}".format(
-            p_qemu.stderr.read()))
+        for so in p_qemu.stdout.read().decode('utf8').split('\n'):
+            if so == '':
+                continue
+            logging.debug("qemu: {}".format(so))
+        for se in p_qemu.stderr.read().decode('utf8').split('\n'):
+            if se == '':
+                continue
+            logging.error("qemu: {}".format(se))
 
         p_virt_sysprep = subprocess.Popen([
             'virt-sysprep', '-a', image,
@@ -235,10 +239,14 @@ class Thinbox(object):
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE
         )
-        logging.debug("virt-sysprep: {}".format(
-            p_virt_sysprep.stdout.read()))
-        logging.debug("virt-sysprep: {}".format(
-            p_virt_sysprep.stderr.read()))
+        for so in p_virt_sysprep.stdout.read().decode('utf8').split('\n'):
+            if so == '':
+                continue
+            logging.debug("virt-sysprep: {}".format(so))
+        for se in p_virt_sysprep.stderr.read().decode('utf8').split('\n'):
+            if se == '':
+                continue
+            logging.error("virt-sysprep: {}".format(se))
 
         p_virt_install = subprocess.Popen([
             'virt-install', '--network=bridge:virbr0',
@@ -251,10 +259,14 @@ class Thinbox(object):
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE
         )
-        logging.debug("virt-install: {}".format(
-            p_virt_install.stdout.read()))
-        logging.debug("virt-install: {}".format(
-            p_virt_install.stderr.read()))
+        for so in p_virt_install.stdout.read().decode('utf8').split('\n'):
+            if so == '':
+                continue
+            logging.debug("virt-install: {}".format(so))
+        for se in p_virt_install.stderr.read().decode('utf8').split('\n'):
+            if se == '':
+                continue
+            logging.error("virt-install: {}".format(se))
 
 def _get_mac(name):
     """Gets MAC of machine
