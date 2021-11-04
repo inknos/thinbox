@@ -257,6 +257,18 @@ class Thinbox(object):
             p_virt_install.stderr.read()))
 
 def _get_mac(name):
+    """Gets MAC of machine
+
+    Parameters
+    ----------
+    name : str
+        Name of machine to query IP of
+
+    Returns
+    -------
+    str
+        MAC of machine
+    """
     p_virsh = subprocess.Popen(['virsh', 'domiflist', name],
             stdout=subprocess.PIPE)
     mac = p_virsh.stdout.read().decode('utf8')
@@ -264,6 +276,18 @@ def _get_mac(name):
     return mac.strip()[-17:]
 
 def _get_ip(name):
+    """Gets ip from arp table
+
+    Parameters
+    ----------
+    name : str
+        Name of machine to query for IP
+
+    Returns
+    -------
+    str
+        IP of machine
+    """
     mac = _get_mac(name)
     ip = ""
     with open("/proc/net/arp", "r") as arp:
