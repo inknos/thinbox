@@ -678,6 +678,30 @@ def get_parser():
         "vm",
         help="manage VMs"
     )
+    vm_subparser = vm_parser.add_subparsers(
+        dest="vm_parser"
+    )
+    vm_list_parser = vm_subparser.add_parser(
+        "list",
+        help="VM list "
+    )
+    vm_list_parser = vm_subparser.add_parser(
+        "remove",
+        aliases=['rm'],
+        help="remove VM"
+    )
+    vm_list_parser_mg = vm_list_parser.add_mutually_exclusive_group(required=True)
+    vm_list_parser_mg.add_argument(
+        "-a", "--all",
+        action='store_const',
+        const=True,
+        help="Name of image already downloaded"
+    )
+    vm_list_parser_mg.add_argument(
+        "name",
+        nargs="?",
+        help="name of the VM"
+    )
     # enter
     enter_parser = subparsers.add_parser(
         "enter",
@@ -759,6 +783,16 @@ def main():
         if args.force:
             tb.stop(args.name, "--mode=acpi")
         tb.stop(args.name)
+    elif args.command == "vm":
+        if args.vm_parser == "list" or args.vm_parser == "ls":
+            print("vm list")
+        if args.vm_parser == "remove" or args.vm_parser == "rm":
+            if args.all:
+                print("vm remove -a")
+            else:
+                print("vm remove", args.name)
+        else:
+            print("vm")
 
 
 if __name__ == "__main__":
