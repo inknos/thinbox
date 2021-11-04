@@ -390,10 +390,27 @@ def _check_hash(filename, ext, hashfunc):
 
 
 def _download_file(url, filepath):
+    """Download file from url to specific path
+
+    Parameters
+    ----------
+    url : str
+        Location of file to be downloaded
+
+    path : str
+        Path where the file will be saved
+
+    Returns
+    -------
+    bool
+        True if file is successfully downloaded
+    """
+    _url_is_valid(url)
+
     # check file exist
     if os.path.exists(filepath):
         logging.debug("File {} exists.".format(filepath))
-        return True
+        return False
     with open(filepath, 'wb') as f:
         response = requests.get(url, stream=True)
         total = response.headers.get('content-length')
