@@ -12,6 +12,8 @@ import shutil
 import subprocess
 import sys
 
+from urllib.parse import urlparse
+
 try:
     import argcomplete
     USE_ARGCOMPLETE = True
@@ -72,6 +74,10 @@ RHEL_IMAGE_HASH = {
     "MD5SUM",
     "SHA1SUM",
     "SHA256SUM"
+}
+RHEL_IMAGE_DOMAIN = {
+    "download-node-02.eng.bos.redhat.com",
+    "redhat.com"
 }
 
 def is_virt_enabled():
@@ -214,9 +220,11 @@ def download_image(url):
     _download(url, filepath)
     #TODO download hash
     # this works for rhel
-    #hashpath = os.path.join(THINBOX_HASH_DIR, filename)
-    #for ext in RHEL_IMAGE_HASH:
-    #    _download(url + "." + ext, hashpath + "." + ext)
+    if urlparse(url).netloc in RHEL_IMAGE_DOMAIN:
+        print("HASH")
+        hashpath = os.path.join(THINBOX_HASH_DIR, filename)
+        for ext in RHEL_IMAGE_HASH:
+            _download(url + "." + ext, hashpath + "." + ext)
     if check_hash(filename, "sha256"):
         print("Image downloaded, verified, and ready to use")
     else:
