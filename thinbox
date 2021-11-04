@@ -244,6 +244,11 @@ class Thinbox(object):
         else:
             logging.warning("File does not exist: {}".format(filepath))
 
+    def remove_all(self):
+        machines = _get_all_machines()
+        for m in machines:
+            self.remove(m)
+
     def pull(self, tag=None, url=None):
 
         if tag:
@@ -259,28 +264,27 @@ class Thinbox(object):
         _image_list()
 
     def list(self):
-        pass
-
-    def _get_all_machines(state="--all"):
-        p_virsh = subprocess.Popen(
-            ['virsh', 'list', '--name', state],
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE
-        )
-        out = p_virsh.stdout.read().decode('utf8').strip().split('\n')
-        return out
-
-    def _get_all_running_machines():
-        return _get_all_machines('--state-runnig')
-
-    def _get_all_stopped_machines():
-        return _get_all_machines('--state-shutoff')
-
-    def _get_all_paused_machines():
-        return _get_all_machines('--state-paused')
-
-    def _get_all_other_machines():
-        return _get_all_machines('--state-other')
+        running = _get_all_running_machines()
+        stopped = _get_all_stopped_machines()
+        paused  = _get_all_stopped_machines()
+        other   = _get_all_other_machines()
+        if len(running + stopped + paused + other) == 0:
+            print("No machines")
+            print("To create a machine run: thinbox create -i <image> <name>")
+            return
+        print("{:<30} {:<30}".format("MACHINE", "STATE"))
+        if running != []:
+            for m in running:
+                print("{:<30} {:<30}".format(m,"running"))
+        if stopped != []:
+            for m in stopped:
+                print("{:<30} {:<30}".format(m,"stopped"))
+        if paused != []:
+            for m in paused:
+                print("{:<30} {:<30}".format(m,"paused"))
+        if other != []:
+            for m in other:
+                print("{:<30} {:<30}".format(m,"other"))
 
     def image_rm(self):
         pass
@@ -338,6 +342,27 @@ class Thinbox(object):
             stderr=subprocess.PIPE
         )
         _logging_subprocess(p_virt_install, "virt-install: {}")
+
+def _get_all_machines(state="--all"):
+    p_virsh = subprocess.Popen(
+        ['virsh', 'list', '--name', state],
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE
+    )
+    out = p_virsh.stdout.read().decode('utf8').strip().split('\n')
+    return list(filter(None, out))
+
+def _get_all_running_machines():
+    return _get_all_machines('--state-running')
+
+def _get_all_stopped_machines():
+    return _get_all_machines('--state-shutoff')
+
+def _get_all_paused_machines():
+    return _get_all_machines('--state-paused')
+
+def _get_all_other_machines():
+    return _get_all_machines('--state-other')
 
 
 def _machine_exists(name):
@@ -716,24 +741,56 @@ def get_parser():
     )
     vm_list_parser = vm_subparser.add_parser(
         "list",
+        aliases=["ls"],
         help="VM list "
     )
-    vm_list_parser = vm_subparser.add_parser(
+    vm_list_parser_mg = vm_list_parser.add_mutually_exclusive_group(required=False)
+    vm_list_parser_mg.add_argument(
+        "-a", "--all",
+        action="store_const",
+        const=True,
+        help="List all VMs"
+    )
+    vm_list_parser_mg.add_argument(
+        "-o", "--other",
+        action="store_const",
+        const=True,
+        help="List all other VMs"
+    )
+    vm_list_parser_mg.add_argument(
+        "-p", "--paused",
+        action="store_const",
+        const=True,
+        help="List all paused VMs"
+    )
+    vm_list_parser_mg.add_argument(
+        "-r", "--running",
+        action="store_const",
+        const=True,
+        help="List all running VMs"
+    )
+    vm_list_parser_mg.add_argument(
+        "-s", "--stopped",
+        action="store_const",
+        const=True,
+        help="List all stopped VMs"
+    )
+    vm_remove_parser = vm_subparser.add_parser(
         "remove",
         aliases=['rm'],
         help="remove VM"
     )
-    vm_list_parser_mg = vm_list_parser.add_mutually_exclusive_group(required=True)
-    vm_list_parser_mg.add_argument(
+    vm_remove_parser_mg = vm_remove_parser.add_mutually_exclusive_group(required=True)
+    vm_remove_parser_mg.add_argument(
         "-a", "--all",
         action='store_const',
         const=True,
-        help="Name of image already downloaded"
+        help="Remove all VMs"
     )
-    vm_list_parser_mg.add_argument(
+    vm_remove_parser_mg.add_argument(
         "name",
         nargs="?",
-        help="name of the VM"
+        help="Remove a VM of name"
     )
     # enter
     enter_parser = subparsers.add_parser(
@@ -818,14 +875,25 @@ def main():
         tb.stop(args.name)
     elif args.command == "vm":
         if args.vm_parser == "list" or args.vm_parser == "ls":
-            print("vm list")
-        if args.vm_parser == "remove" or args.vm_parser == "rm":
             if args.all:
-                print("vm remove -a")
+                tb.list()
+            elif args.other:
+                print("other")
+            elif args.paused:
+                print("paused")
+            elif args.running:
+                print("running")
+            elif args.stopped:
+                print("stopped")
+            else:
+                tb.list()
+        elif args.vm_parser == "remove" or args.vm_parser == "rm":
+            if args.all:
+                tb.remove_all()
             else:
                 tb.remove(args.name)
         else:
-            print("vm")
+            tb.list()
 
 
 if __name__ == "__main__":
