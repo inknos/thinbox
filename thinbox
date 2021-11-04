@@ -667,6 +667,12 @@ def get_parser():
     thinbox
         |
         +-- list/ls -----------------|
+        |       |                    |
+        |       +-- -a/--all         |
+        |       +-- -o/--other       |
+        |       +-- -p/--paused      |
+        |       +-- -r/--running     |
+        |       +-- -s/--stopped     |
         +-- remove/rm <vm_name> --------|
                   |                  |  |
                   +-- -a ------------------|
@@ -674,6 +680,11 @@ def get_parser():
     thinbox vm                       |  |  |
            |                         |  |  |
            +-- list/ls --------------|  |  |
+           |    +-- -a/--all            |  |
+           |    +-- -o/--other          |  |
+           |    +-- -p/--paused         |  |
+           |    +-- -r/--running        |  |
+           |    +-- -s/--stopped        |  |
            +-- remove/rm <vm_name> -----|  |
                      |                     |
                      +-- -a ---------------|
@@ -742,11 +753,13 @@ def get_parser():
     # list
     list_parser = subparsers.add_parser(
         "list",
+        aliases = ['ls'],
         help="list available VMs"
     )
     # remove
     remove_parser = subparsers.add_parser(
         "remove",
+        aliases = ['rm'],
         help="remove VM"
     )
     remove_parser.add_argument(
@@ -756,6 +769,7 @@ def get_parser():
     # image
     image_parser = subparsers.add_parser(
         "image",
+        aliases = ['img'],
         help="manage base images"
     )
     # vm
