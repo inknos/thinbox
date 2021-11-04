@@ -180,20 +180,10 @@ class Thinbox(object):
         if domain in FEDORA_IMAGE_DOMAIN:
             return "fedora"
 
-    def _print_logging_subprocess(process, output):
-        for so in process.stdout.read().decode('utf8').split('\n'):
-            if so == '':
-                continue
-            logging.debug(output.format(so))
-        for se in process.stderr.read().decode('utf8').split('\n'):
-            if se == '':
-                continue
-            logging.error(output.format(se))
-
-    def remove(name):
+    def remove(self, name):
         # check if machine exists
         # check if file exists
-        filepath = os.path.join(THINBOX_IMAGE_DIR, filepath + "qcow2")
+        filepath = os.path.join(THINBOX_IMAGE_DIR, name + ".qcow2")
         # stop the machine
         p_shutdown = subprocess.Popen(
             ['virsh', 'shutdown', name],
@@ -305,6 +295,17 @@ class Thinbox(object):
             if se == '':
                 continue
             logging.error("virt-install: {}".format(se))
+
+
+def _print_logging_subprocess(process, output):
+    for so in process.stdout.read().decode('utf8').split('\n'):
+        if so == '':
+            continue
+        logging.debug(output.format(so))
+    for se in process.stderr.read().decode('utf8').split('\n'):
+        if se == '':
+            continue
+        logging.error(output.format(se))
 
 def _get_mac(name):
     """Gets MAC of machine
@@ -609,6 +610,10 @@ def get_parser():
         "remove",
         help="remove VM"
     )
+    remove_parser.add_argument(
+        "name",
+        help="Name of VM to remove"
+    )
     # image
     image_parser = subparsers.add_parser(
         "image",
@@ -687,9 +692,8 @@ def main():
             tb.create_from_image(args.image, args.name)
     elif args.command == "enter":
         tb.enter(args.name)
-    elif args.command == "vm":
-        if args.command == "remove":
-            print("remove")
+    elif args.command == "remove":
+        tb.remove(args.name)
 
 
 if __name__ == "__main__":
