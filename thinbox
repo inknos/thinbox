@@ -575,7 +575,7 @@ def _check_hash(filename, ext, hashfunc):
         print("To list the available images run: thinbox image")
         sys.exit(1)
     if not os.path.exists(hashpath):
-        logging.error("Hash file {} does not exists.".format(filepath))
+        logging.warning("Hash file {} does not exists.".format(filepath))
         return False, "", ""
     # if hash/imagename.hash.OK exists return True
     if os.path.exists(hashpath + ".OK"):
