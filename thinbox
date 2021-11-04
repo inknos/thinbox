@@ -349,23 +349,6 @@ def _machine_is_running(name):
     )
     return _machine_exists(name) and name in p_list.stdout.read().decode('utf8').strip().split('\n')
 
-def _machine_is_stopped(name):
-    """Returns True if VM name refers to an existing and not running machine
-
-    return _machine_exists(name) and not _machine_is_running(name)
-
-    Parameters
-    ----------
-    name : string
-        Machine name to check
-
-    Returns
-    -------
-    bool
-        True if machine of given name exists and is not running
-    """
-    return _machine_exists(name) and not _machine_is_running(name)
-
 def _logging_subprocess(process, output):
     for so in process.stdout.read().decode('utf8').split('\n'):
         if so == '':
