@@ -258,6 +258,30 @@ class Thinbox(object):
     def image_list(self):
         _image_list()
 
+    def list(self):
+        pass
+
+    def _get_all_machines(state="--all"):
+        p_virsh = subprocess.Popen(
+            ['virsh', 'list', '--name', state],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE
+        )
+        out = p_virsh.stdout.read().decode('utf8').strip().split('\n')
+        return out
+
+    def _get_all_running_machines():
+        return _get_all_machines('--state-runnig')
+
+    def _get_all_stopped_machines():
+        return _get_all_machines('--state-shutoff')
+
+    def _get_all_paused_machines():
+        return _get_all_machines('--state-paused')
+
+    def _get_all_other_machines():
+        return _get_all_machines('--state-other')
+
     def image_rm(self):
         pass
 
