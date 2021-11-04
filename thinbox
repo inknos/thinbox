@@ -180,17 +180,31 @@ class Thinbox(object):
         if domain in FEDORA_IMAGE_DOMAIN:
             return "fedora"
 
-    def remove(self, name):
-        # check if machine exists
-        # check if file exists
-        filepath = os.path.join(THINBOX_IMAGE_DIR, name + ".qcow2")
-        # stop the machine
+    def stop(self, name, opt=None):
         p_shutdown = subprocess.Popen(
             ['virsh', 'shutdown', name],
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE
         )
+        print("Machine '{}' is being shutdown.".format(name))
         _logging_subprocess(p_shutdown, "virsh shutdown: {}")
+
+    def start(self, name):
+        p_start = subprocess.Popen(
+            ['virsh', 'start', name],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE
+        )
+        print("Machine '{}' started.".format(name))
+        print("Run thinbox enter {} to ssh to it")
+        _logging_subprocess(p_start, "virsh shutdown: {}")
+
+
+    def remove(self, name):
+        # check if machine exists
+        # check if file exists
+        filepath = os.path.join(THINBOX_IMAGE_DIR, name + ".qcow2")
+        # stop the machine
         p_destroy = subprocess.Popen(
             ['virsh', 'destroy', name],
             stdout=subprocess.PIPE,
@@ -630,6 +644,11 @@ def get_parser():
         "name",
         help="name of the VM to stop"
     )
+    stop_parser_mg = stop_parser.add_mutually_exclusive_group(required=False)
+    stop_parser_mg.add_argument(
+        "-f", "--force",
+        help="Force shuotdown of machine with sending ACPI"
+    )
 
     return parser
 
@@ -673,6 +692,10 @@ def main():
         tb.enter(args.name)
     elif args.command == "remove":
         tb.remove(args.name)
+    elif args.start:
+        tb.start(args.name)
+    elif args.stop:
+        tb.stop(args.name)
 
 
 if __name__ == "__main__":
