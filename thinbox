@@ -294,7 +294,21 @@ class Thinbox(object):
         _logging_subprocess(p_virt_install, "virt-install: {}")
 
 
-def _machine_exist(name):
+def _machine_exists(name):
+    """Returns True if VM name refers to an existing machine
+
+    Run virh list --name --all and check output
+
+    Parameters
+    ----------
+    name : string
+        Machine name to check
+
+    Returns
+    -------
+    bool
+        True if machine of given name exist
+    """
     p_list = subprocess.Popen(
         ['virsh', 'list', '--name', '--all'],
         stdout=subprocess.PIPE,
@@ -303,15 +317,43 @@ def _machine_exist(name):
     return name in p_list.stdout.read().decode('utf8').strip().split('\n')
 
 def _machine_is_running(name):
+    """Returns True if VM name refers to an existing and running machine
+
+    Run virh list --name and check output
+
+    Parameters
+    ----------
+    name : string
+        Machine name to check
+
+    Returns
+    -------
+    bool
+        True if machine of given name exists and is running
+    """
     p_list = subprocess.Popen(
         ['virsh', 'list', '--name'],
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE
     )
-    return name in p_list.stdout.read().decode('utf8').strip().split('\n')
+    return _machine_exists(name) and name in p_list.stdout.read().decode('utf8').strip().split('\n')
 
 def _machine_is_stopped(name):
-    return not _machine_is_running(name)
+    """Returns True if VM name refers to an existing and not running machine
+
+    return _machine_exists(name) and not _machine_is_running(name)
+
+    Parameters
+    ----------
+    name : string
+        Machine name to check
+
+    Returns
+    -------
+    bool
+        True if machine of given name exists and is not running
+    """
+    return _machine_exists(name) and not _machine_is_running(name)
 
 def _logging_subprocess(process, output):
     for so in process.stdout.read().decode('utf8').split('\n'):
