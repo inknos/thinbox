@@ -190,13 +190,19 @@ class Thinbox(object):
                 continue
             logging.error(output.format(se))
 
-    def delete(name):
+    def remove(name):
         # check if machine exists
         # check if file exists
         filepath = os.path.join(THINBOX_IMAGE_DIR, filepath + "qcow2")
         # stop the machine
+        p_shutdown = subprocess.Popen(
+            ['virsh', 'shutdown', name],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE
+        )
+        _print_logging_subprocess(p_shutdown, "virsh shutdown: {}")
         p_destroy = subprocess.Popen(
-            ['virsh', 'destroy' name],
+            ['virsh', 'destroy', name],
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE
         )
@@ -520,17 +526,17 @@ def get_parser():
                         +-- -a
     thinbox
         |
-        +-- list/ls
-        +-- remove/rm <vm_name>
-                  |
-                  +-- -a
-
-    thinbox vm
-           |
-           +-- list/ls
-           +-- remove/rm <vm_name>
-                     |
-                     +-- -a
+        +-- list/ls -----------------|
+        +-- remove/rm <vm_name> --------|
+                  |                  |  |
+                  +-- -a ------------------|
+                                     |  |  |
+    thinbox vm                       |  |  |
+           |                         |  |  |
+           +-- list/ls --------------|  |  |
+           +-- remove/rm <vm_name> -----|  |
+                     |                     |
+                     +-- -a ---------------|
 
     thinbox enter <vm_name>
     thinbox start <vm_name>
@@ -681,6 +687,9 @@ def main():
             tb.create_from_image(args.image, args.name)
     elif args.command == "enter":
         tb.enter(args.name)
+    elif args.command == "vm":
+        if args.command == "remove":
+            print("remove")
 
 
 if __name__ == "__main__":
