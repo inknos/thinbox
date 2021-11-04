@@ -313,14 +313,14 @@ def download_image(url):
     # check dir exist
     if not os.path.exists(CACHE_DIR):
         os.makedirs(CACHE_DIR)
-    _download(url, filepath)
+    _download_file(url, filepath)
     #TODO download hash
     # this works for rhel
     if urlparse(url).netloc in RHEL_IMAGE_DOMAIN:
         print("HASH")
         hashpath = os.path.join(THINBOX_HASH_DIR, filename)
         for ext in RHEL_IMAGE_HASH:
-            _download(url + "." + ext, hashpath + "." + ext)
+            _download_file(url + "." + ext, hashpath + "." + ext)
     if check_hash(filename, "sha256"):
         print("Image downloaded, verified, and ready to use")
     else:
@@ -389,11 +389,11 @@ def _check_hash(filename, ext, hashfunc):
     return hh == hf, hh, hf
 
 
-def _download(url, filepath):
+def _download_file(url, filepath):
     # check file exist
     if os.path.exists(filepath):
         logging.debug("File {} exists.".format(filepath))
-        return
+        return True
     with open(filepath, 'wb') as f:
         response = requests.get(url, stream=True)
         total = response.headers.get('content-length')
@@ -410,6 +410,7 @@ def _download(url, filepath):
                 sys.stdout.write('\r[{}{}]'.format('█' * done, '.' * (50-done)))
                 sys.stdout.flush()
     sys.stdout.write('\n')
+    return True
 
 def get_parser():
     """
