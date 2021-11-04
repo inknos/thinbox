@@ -180,6 +180,38 @@ class Thinbox(object):
         if domain in FEDORA_IMAGE_DOMAIN:
             return "fedora"
 
+    def _print_logging_subprocess(process, output):
+        for so in process.stdout.read().decode('utf8').split('\n'):
+            if so == '':
+                continue
+            logging.debug(output.format(so))
+        for se in process.stderr.read().decode('utf8').split('\n'):
+            if se == '':
+                continue
+            logging.error(output.format(se))
+
+    def delete(name):
+        # check if machine exists
+        # check if file exists
+        filepath = os.path.join(THINBOX_IMAGE_DIR, filepath + "qcow2")
+        # stop the machine
+        p_destroy = subprocess.Popen(
+            ['virsh', 'destroy' name],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE
+        )
+        _print_logging_subprocess(p_destroy, "virsh destroy: {}")
+        p_undefine = subprocess.Popen(
+            ['virsh', 'undefine', name],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE
+        )
+        _print_logging_subprocess(p_undefine, "virsh undefine: {}")
+        if os.path.exists(filepath):
+            os.remove(filepath)
+        else:
+            logging.warning("File does not exist: {}".format(filepath))
+
     def pull(self, tag=None, url=None):
 
         if tag:
