@@ -1,4 +1,4 @@
-#!/usr/bin/python3
+#!/usr/bin/python3.10
 # PYTHON_ARGCOMPLETE_OK
 
 import argparse
@@ -80,6 +80,61 @@ RHEL_IMAGE_DOMAIN = {
     "redhat.com"
 }
 
+def _url_is_valid(url):
+    """Validate a url format based on Django validator
+
+    The validation is done through regex and it was taken from:
+    https://stackoverflow.com/questions/7160737/how-to-validate-a-url-in-python-malformed-or-not
+    https://github.com/django/django/blob/stable/1.3.x/django/core/validators.py#L45
+
+    Parameters
+    ----------
+    url : str
+        The url to validate
+
+    Returns
+    -------
+    bool
+        True if the url is valid
+    """
+
+    regex = re.compile(
+        r'^(?:http|ftp)s?://' # http:// or https://
+        r'(?:(?:[A-Z0-9](?:[A-Z0-9-]{0,61}[A-Z0-9])?\.)+(?:[A-Z]{2,6}\.?|[A-Z0-9-]{2,}\.?)|' #domain...
+        r'localhost|' #localhost...
+        r'\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})' # ...or ip
+        r'(?::\d+)?' # optional port
+        r'(?:/?|[/?]\S+)$', re.IGNORECASE)
+    return re.match(regex, url) is not None
+
+def _ping_url(url):
+    """Ping a url to see if site is available
+
+    Example from:
+    https://stackoverflow.com/questions/316866/ping-a-site-in-python
+
+    Parameters
+    ----------
+    url : str
+        The url to ping
+
+    Returns
+    -------
+    bool
+        True if the ping has 0% packet loss
+    """
+    ping_response = subprocess.Popen(
+        ["ping", "-c3", url],
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE)
+    ping_stdout.stdout.read()
+    ping_stderr.stderr.read()
+    if ping_stderr != b'':
+        logger.error("Ping error: {}".format(ping_stderr.decode('utf8')))
+        sys.exit(1)
+    result = ping_stdout.decode('utf-8')
+    return "0% packet loss" in result
+
 def is_virt_enabled():
     env = os.environ.copy()
     env["LC_LANG"] = "C"
@@ -87,8 +142,42 @@ def is_virt_enabled():
     return "VT-x" in str(out.stdout)
 
 class Thinbox(object):
+    """
+    A class made to represent a Thinbox run
+
+    Attributes
+    ----------
+    url : str
+        the url of the image to pull
+
+    Methods
+    -------
+    pull(tag=None, url=None)
+        Pulls a base image from a url or from a tag
+    """
     def __init__(self):
         super().__init__()
+        self._url = ""
+        #self._os  = _detect_os_from_url(self.url)
+
+    @property
+    def url(self):
+        return self._url
+
+    @url.setter
+    def url(self, val):
+        # check if url is valid
+        self._url = val
+
+    def _detect_os_from_url(self, url):
+        return None
+        if url is None:
+            return None
+        domain = urlparse(url).netloc
+        if domain in RHEL_IMAGE_DOMAIN:
+            return "rhel"
+        if domain in FEDORA_IMAGE_DOMAIN:
+            return "fedora"
 
     def pull(self, tag=None, url=None):
 
@@ -174,10 +263,17 @@ def _get_mac(name):
 
 def _get_ip(name):
     mac = _get_mac(name)
-    p_arp = subprocess.Popen(['arp', '-na'], stdout=subprocess.PIPE)
-    out = p_arp.stdout.read().decode('utf8')
-    ip = [ ip for ip in out.strip().split('\n') if mac in ip ][0]
+    ip = ""
+    with open("/proc/net/arp", "r") as arp:
+        for line in arp:
+            if mac in line:
+                ip = line
+                break
+    #p_arp = subprocess.Popen(['arp', '-na'], stdout=subprocess.PIPE)
+    #out = p_arp.stdout.read().decode('utf8')
+    #ip = [ ip for ip in out.strip().split('\n') if mac in ip ][0]
     ip = re.findall( r'[0-9]+(?:\.[0-9]+){3}', ip )[0]
+    logging.debug("Ip: {}".format(ip))
     return ip
 
 def _ssh_connect(name):
@@ -488,18 +584,16 @@ def main():
     if not args.command:
         parser.print_help()
         parser.error("Please specify a command")
+
+    tb = Thinbox()
     if args.command == "pull":
-        tb = Thinbox()
         tb.pull(tag=args.tag, url=args.url)
     elif args.command == "image":
-        tb = Thinbox()
         tb.image()
     elif args.command == "create":
-        tb = Thinbox()
         if args.image:
             tb.create_from_image(args.image, args.name)
     elif args.command == "enter":
-        tb = Thinbox()
         tb.enter(args.name)
 
 
