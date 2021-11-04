@@ -185,7 +185,7 @@ class Thinbox(object):
             print("Machine '{}' does not exist".format(name))
             sys.exit(1)
         if not _machine_is_running(name):
-            print("Machine '{}' already stopped.")
+            print("Machine '{}' already stopped.".format(name))
             return
         command = ['virsh', 'shutdown']
         if opt == "--mode=acpi":
@@ -201,17 +201,19 @@ class Thinbox(object):
 
     def start(self, name):
         if not _machine_exists(name):
-            print("Machine '{}' does not exist").format(name))
+            print("Machine '{}' does not exist".format(name))
             sys.exit(1)
         if _machine_is_running(name):
             print("Machine '{}' is already running.".format(name))
+            print("To SSH in it run: thinbox enter {}".format(name))
+            return
         p_start = subprocess.Popen(
             ['virsh', 'start', name],
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE
         )
         print("Machine '{}' started.".format(name))
-        print("Run thinbox enter {} to ssh to it".format(name))
+        print("To SSH in it run: thinbox enter {}".format(name))
         _logging_subprocess(p_start, "virsh start: {}")
 
 
