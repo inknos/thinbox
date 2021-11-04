@@ -263,13 +263,32 @@ class Thinbox(object):
     def image_list(self):
         _image_list()
 
-    def list(self):
-        running = _get_all_running_machines()
-        stopped = _get_all_stopped_machines()
-        paused  = _get_all_stopped_machines()
-        other   = _get_all_other_machines()
+    def list(self, fil=""):
+        running = []
+        stopped = []
+        other   = []
+        paused  = []
+        if fil == "":
+            print(len(running + stopped + other + paused), "machines.")
+            running = _get_all_running_machines()
+            stopped = _get_all_stopped_machines()
+            paused  = _get_all_stopped_machines()
+            other   = _get_all_other_machines()
+        elif fil == "other":
+            print(len(other), fil, "machines")
+            other = _get_all_other_machines()
+        elif fil == "paused":
+            print(len(paused), fil, "machines")
+            paused = _get_all_paused_machines()
+        elif fil == "running":
+            print(len(running), fil, "machines")
+            running = _get_all_running_machines()
+        elif fil == "stopped":
+            print(len(stopped), fil, "machines")
+            stopped = _get_all_stopped_machines()
+
+
         if len(running + stopped + paused + other) == 0:
-            print("No machines")
             print("To create a machine run: thinbox create -i <image> <name>")
             return
         print("{:<30} {:<30}".format("MACHINE", "STATE"))
@@ -303,6 +322,8 @@ class Thinbox(object):
         base = os.path.join(THINBOX_BASE_DIR, base_name)
         if not os.path.exists(base):
             logging.error("Image {} not found in {}.".format(base, THINBOX_BASE_DIR))
+            if not _image_name_wrong(base):
+                print("Maybe the filename is incorrect?")
             print("To list the available images run: thinbox image")
             sys.exit(1)
 
@@ -386,6 +407,9 @@ def _machine_exists(name):
         stderr=subprocess.PIPE
     )
     return name in p_list.stdout.read().decode('utf8').strip().split('\n')
+
+def _image_name_wrong(name):
+    return name.endswith(".qcow2")
 
 def _machine_is_running(name):
     """Returns True if VM name refers to an existing and running machine
@@ -546,6 +570,9 @@ def _check_hash(filename, ext, hashfunc):
     hashpath = os.path.join(THINBOX_HASH_DIR, filename + "." + ext)
     if not os.path.exists(filepath):
         logging.error("Image file {} does not exists.".format(filepath))
+        if not _image_name_wrong(filepath):
+            print("Maybe the filename is incorrect?")
+        print("To list the available images run: thinbox image")
         sys.exit(1)
     if not os.path.exists(hashpath):
         logging.error("Hash file {} does not exists.".format(filepath))
@@ -878,13 +905,13 @@ def main():
             if args.all:
                 tb.list()
             elif args.other:
-                print("other")
+                tb.list(fil="other")
             elif args.paused:
-                print("paused")
+                tb.list(fil="paused")
             elif args.running:
-                print("running")
+                tb.list(fil="running")
             elif args.stopped:
-                print("stopped")
+                tb.list(fil="stopped")
             else:
                 tb.list()
         elif args.vm_parser == "remove" or args.vm_parser == "rm":
