@@ -219,8 +219,10 @@ class Thinbox(object):
 
     def remove(self, name):
         # check if machine exists
-        # check if file exists
-        filepath = os.path.join(THINBOX_IMAGE_DIR, name + ".qcow2")
+        if not _machine_exists(name):
+            logging.error("Machine with name does not '{}' exists.".format(name))
+            sys.exit(1)
+
         # stop the machine
         p_destroy = subprocess.Popen(
             ['virsh', 'destroy', name],
@@ -234,6 +236,9 @@ class Thinbox(object):
             stderr=subprocess.PIPE
         )
         _logging_subprocess(p_undefine, "virsh undefine: {}")
+
+        # check if file exists
+        filepath = os.path.join(THINBOX_IMAGE_DIR, name + ".qcow2")
         if os.path.exists(filepath):
             os.remove(filepath)
         else:
@@ -270,10 +275,14 @@ class Thinbox(object):
         base = os.path.join(THINBOX_BASE_DIR, base_name)
         if not os.path.exists(base):
             logging.error("Image {} not found in {}.".format(base, THINBOX_BASE_DIR))
+            print("To list the available images run: thinbox image")
+            sys.exit(1)
 
         # ensure_domain_undefined $name
 
-        # ensure image does not exist
+        if _machine_exists(name):
+            logging.error("Machine with name '{}' exists.".format(name))
+            sys.exit(1)
 
         p_qemu = subprocess.Popen([
             'qemu-img', 'create',
@@ -790,7 +799,7 @@ def main():
             if args.all:
                 print("vm remove -a")
             else:
-                print("vm remove", args.name)
+                tb.remove(args.name)
         else:
             print("vm")
 
