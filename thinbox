@@ -260,6 +260,7 @@ def _get_mac(name):
     p_virsh = subprocess.Popen(['virsh', 'domiflist', name],
             stdout=subprocess.PIPE)
     mac = p_virsh.stdout.read().decode('utf8')
+    logging.debug("mac: {}".format(mac))
     return mac.strip()[-17:]
 
 def _get_ip(name):
@@ -280,8 +281,6 @@ def _get_ip(name):
 def _ssh_connect(name):
     mac = _get_mac(name)
     ip = _get_ip(name)
-    logging.debug("ip: {}".format(ip))
-    logging.debug("mac: {}".format(mac))
     logging.debug("options: {}".format(THINBOX_SSH_OPTIONS))
     os.system("ssh {} root@{}".format(THINBOX_SSH_OPTIONS, ip))
 
