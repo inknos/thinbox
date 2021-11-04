@@ -181,8 +181,12 @@ class Thinbox(object):
             return "fedora"
 
     def stop(self, name, opt=None):
+        command = ['virsh', 'shutdown']
+        if opt == "--mode=acpi":
+            command.append(opt)
+        command.append(name)
         p_shutdown = subprocess.Popen(
-            ['virsh', 'shutdown', name],
+            command,
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE
         )
@@ -196,8 +200,8 @@ class Thinbox(object):
             stderr=subprocess.PIPE
         )
         print("Machine '{}' started.".format(name))
-        print("Run thinbox enter {} to ssh to it")
-        _logging_subprocess(p_start, "virsh shutdown: {}")
+        print("Run thinbox enter {} to ssh to it".format(name))
+        _logging_subprocess(p_start, "virsh start: {}")
 
 
     def remove(self, name):
@@ -289,6 +293,25 @@ class Thinbox(object):
         )
         _logging_subprocess(p_virt_install, "virt-install: {}")
 
+
+def _machine_exist(name):
+    p_list = subprocess.Popen(
+        ['virsh', 'list', '--name', '--all'],
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE
+    )
+    return name in p_list.stdout.read().decode('utf8').strip().split('\n')
+
+def _machine_is_running(name):
+    p_list = subprocess.Popen(
+        ['virsh', 'list', '--name'],
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE
+    )
+    return name in p_list.stdout.read().decode('utf8').strip().split('\n')
+
+def _machine_is_stopped(name):
+    return not _machine_is_running(name)
 
 def _logging_subprocess(process, output):
     for so in process.stdout.read().decode('utf8').split('\n'):
@@ -692,9 +715,11 @@ def main():
         tb.enter(args.name)
     elif args.command == "remove":
         tb.remove(args.name)
-    elif args.start:
+    elif args.command == "start":
         tb.start(args.name)
-    elif args.stop:
+    elif args.command == "stop":
+        if args.force:
+            tb.stop(args.name, "--mode=acpi")
         tb.stop(args.name)
 
 
