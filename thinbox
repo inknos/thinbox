@@ -856,6 +856,37 @@ def get_parser():
         aliases = ['ls'],
         help="list available VMs"
     )
+    list_parser_mg = list_parser.add_mutually_exclusive_group(required=False)
+    list_parser_mg.add_argument(
+        "-a", "--all",
+        action="store_const",
+        const=True,
+        help="List all VMs"
+    )
+    list_parser_mg.add_argument(
+        "-o", "--other",
+        action="store_const",
+        const=True,
+        help="List all other VMs"
+    )
+    list_parser_mg.add_argument(
+        "-p", "--paused",
+        action="store_const",
+        const=True,
+        help="List all paused VMs"
+    )
+    list_parser_mg.add_argument(
+        "-r", "--running",
+        action="store_const",
+        const=True,
+        help="List all running VMs"
+    )
+    list_parser_mg.add_argument(
+        "-s", "--stopped",
+        action="store_const",
+        const=True,
+        help="List all stopped VMs"
+    )
     # remove
     remove_parser = subparsers.add_parser(
         "remove",
@@ -1016,6 +1047,19 @@ def main():
         if args.force:
             tb.stop(args.name, "--mode=acpi")
         tb.stop(args.name)
+    elif args.command == "list" or args.command == "ls":
+        if args.all:
+            tb.list()
+        elif args.other:
+            tb.list(fil="other")
+        elif args.paused:
+            tb.list(fil="paused")
+        elif args.running:
+            tb.list(fil="running")
+        elif args.stopped:
+            tb.list(fil="stopped")
+        else:
+            tb.list()
     elif args.command == "vm":
         if args.vm_parser == "list" or args.vm_parser == "ls":
             if args.all:
