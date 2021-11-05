@@ -11,6 +11,8 @@ import shutil
 import subprocess
 import sys
 
+from paramiko import SSHClient
+from scp import SCPClient
 from sysconfig import get_config_var
 from urllib.parse import urlparse
 
@@ -276,6 +278,35 @@ class Thinbox(object):
 
     def image_list(self):
         _image_list()
+
+    def copy(self, files, name, directory, pre, command):
+        # machine exist?
+        if not _machine_exists(name):
+            logging.error("Machine with name '{}' does not exist.".format(name))
+            sys.exit(1)
+        # get ip
+        ip = _get_ip(name)
+        # run command
+        if pre:
+            print("Command", pre)
+
+        # copy file
+        if directory:
+            destination = directory
+        else:
+            destination = "/root"
+        ssh = SSHClient()
+        ssh.load_system_host_keys()
+        ssh.connect(hostname=ip, username="root")
+
+        with SCPClient(ssh.get_transport()) as scp:
+            for file in files:
+                scp.put(file, os.path.join(destination, os.path.basename(file)))
+
+        # run post
+        if command:
+            print("Command", command)
+
 
     def list(self, fil=""):
         running = []
@@ -770,6 +801,7 @@ def get_parser():
         "-u", "--url",
         help="URL of the image you want to pull"
     )
+    # copy
     copy_parser = subparsers.add_parser(
         "copy",
         aliases = ["cp"],
@@ -787,7 +819,7 @@ def get_parser():
     copy_parser_mg = copy_parser.add_argument_group()
     copy_parser_mg.add_argument(
         "-c",
-        "--comand",
+        "--comm",
         help="command to execute after the copy"
     )
     copy_parser_mg.add_argument(
@@ -955,6 +987,8 @@ def main():
     elif args.command == "create":
         if args.image:
             tb.create_from_image(args.image, args.name)
+    elif args.command == "copy":
+        tb.copy(args.file, args.name, args.dir, args.pre, args.comm)
     elif args.command == "enter":
         tb.enter(args.name)
     elif args.command == "remove":
