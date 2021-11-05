@@ -26,13 +26,11 @@ Requires:       python3-scp
 %install
 rm -rf $RPM_BUILD_ROOT
 install -Dpm 0755 %{name}.py %{buildroot}%{_bindir}/%{name}
-pdoc --html thinbox
 
 
 %files
 %{_bindir}/%{name}
 %license LICENSE
-%doc html/thinbox.html
 
 
 %changelog
