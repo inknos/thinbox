@@ -181,6 +181,9 @@ class Thinbox(object):
     all_other_machines : list
         list of names of all other machines
 
+    base_images : list
+        list of all base images available
+
     Methods
     -------
     pull(tag=None, url=None)
@@ -196,6 +199,7 @@ class Thinbox(object):
         self._all_stopped_machines = self._get_all_stopped_machines()
         self._all_paused_machines  = self._get_all_paused_machines()
         self._all_other_machines   = self._get_all_other_machines()
+        self._base_images = self._get_base_images()
 
     @property
     def all_machines(self):
@@ -216,6 +220,10 @@ class Thinbox(object):
     @property
     def all_other_machines(self):
         return self._all_other_machines
+
+    @property
+    def base_images(self):
+        return self._base_images
 
     def _detect_os_from_url(self, url):
         return None
@@ -319,8 +327,7 @@ class Thinbox(object):
             self.remove(m)
 
     def pull(self, tag=None, url=None):
-        """
-        Download a qcow2 image file from tag or url
+        """Download a qcow2 image file from tag or url
 
         Parameters
         ----------
@@ -566,6 +573,13 @@ class Thinbox(object):
 
     def _get_all_other_machines(self):
         return self._get_all_machines('--state-other')
+
+    def _get_base_images(self):
+        image_list = []
+        for root, dirs, files in os.walk(THINBOX_BASE_DIR):
+            for file in files:
+                image_list.append(file)
+        return image_list
 
 
 def _run_ssh_command(session, cmd):
@@ -944,6 +958,7 @@ def get_parser():
     create_parser_mg = create_parser.add_mutually_exclusive_group(required=True)
     create_parser_mg.add_argument(
         "-i", "--image",
+        choices=tb.base_images,
         help="Name of image already downloaded"
     )
     create_parser_mg.add_argument(
