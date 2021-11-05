@@ -6,7 +6,7 @@ from distutils.core import setup
 
 setup(
     name='thinbox_py',
-    version='1.0',
+    version='0.0.0',
     description='Thinbox rewrittein in pyhton',
     author='Nicola Sella',
     author_email='nsella@redhat.com',
