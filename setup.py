@@ -5,8 +5,8 @@ from distutils.core import setup
 
 
 setup(
-    name='thinbox_py',
-    version='0.0.0',
+    name='thinbox',
+    version='0.1.0',
     description='Thinbox rewrittein in pyhton',
     author='Nicola Sella',
     author_email='nsella@redhat.com',
