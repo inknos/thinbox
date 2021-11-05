@@ -185,7 +185,9 @@ class Thinbox(object):
     -------
     pull(tag=None, url=None)
         Pulls a base image from a url or from a tag
+
     enter(name)
+        Enter machine
     """
     def __init__(self):
         super().__init__()
