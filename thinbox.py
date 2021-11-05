@@ -154,7 +154,7 @@ def _ping_url(url):
     ping_stdout.stdout.read()
     ping_stderr.stderr.read()
     if ping_stderr != b'':
-        logger.error("Ping error: {}".format(ping_stderr.decode('utf8')))
+        logging.error("Ping error: {}".format(ping_stderr.decode('utf8')))
         sys.exit(1)
     result = ping_stdout.decode('utf-8')
     return "0% packet loss" in result
@@ -350,6 +350,13 @@ class Thinbox(object):
         tag : str
             Tag of image to download (RHEL only)
         """
+        if tag not in RHEL_TAGS:
+            print("Tag '{}' is not a known tag")
+            sys.exit(1)
+
+        if not RHEL_IMAGE_URL:
+            logging.warning("Variable RHEL_IMAGE_URL. If you know where to pull images please export this variable locally.")
+            sys.exit(1)
         url = self._generate_url_from_tag(tag)
         self.pull_url(url)
 
@@ -756,7 +763,6 @@ def download_image(url):
     #TODO download hash
     # this works for rhel
     if urlparse(url).netloc in RHEL_IMAGE_DOMAIN:
-        print("HASH")
         hashpath = os.path.join(THINBOX_HASH_DIR, filename)
         for ext in RHEL_IMAGE_HASH:
             _download_file(url + "." + ext, hashpath + "." + ext)
@@ -776,7 +782,7 @@ def check_hash(filename, hashname="md5"):
         hashfunc = hashlib.sha256()
         ext = "SHA256SUM"
     else:
-        logger.error("Not a valid hash function: {}".format(hashname))
+        logging.error("Not a valid hash function: {}".format(hashname))
     result, hh, hf = _check_hash(filename, ext, hashfunc)
 
     logging.debug("File hash is {}.".format(hf))
@@ -954,6 +960,7 @@ def get_parser():
     pull_parser_mg = pull_parser.add_mutually_exclusive_group(required=True)
     pull_parser_mg.add_argument(
         "-t", "--tag",
+        choices = list(RHEL_TAGS),
         help="TAG of the image you want to pull"
     )
     pull_parser_mg.add_argument(
