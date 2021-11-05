@@ -975,13 +975,12 @@ def get_parser():
     thinbox create
                |
                +-- -i/--image <image> <vm_name> [autocomplete]
-               x-- -p/--path  <path>  <vm_name>
                x-- -t/--tag   <image> <vm_name>
                x-- -u/--url   <url>   <vm_name>
 
     thinbox pull
              |
-             x-- -t/--tag <tag>
+             +-- -t/--tag <tag> [autocomplete]
              +-- -u/--url <url>
 
     thinbox image
