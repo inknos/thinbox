@@ -166,8 +166,20 @@ class Thinbox(object):
 
     Attributes
     ----------
-    url : str
-        the url of the image to pull
+    all_machines : list
+        list of names of all machines
+
+    all_running_machines : list
+        list of names of all running machines
+
+    all_stopped_machines : list
+        list of names of all stopped machines
+
+    all_paused_machines : list
+        list of names of all paused machines
+
+    all_other_machines : list
+        list of names of all other machines
 
     Methods
     -------
