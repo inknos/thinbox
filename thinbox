@@ -11,6 +11,7 @@ import shutil
 import subprocess
 import sys
 
+from time import sleep
 from argcomplete.completers import ChoicesCompleter
 from paramiko import SSHClient
 from scp import SCPClient
@@ -250,15 +251,9 @@ class Thinbox(object):
             print("Machine '{}' is already running.".format(name))
             print("To SSH in it run: thinbox enter {}".format(name))
             return
-        p_start = subprocess.Popen(
-            ['virsh', 'start', name],
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE
-        )
+        self._start_machine(name)
         print("Machine '{}' started.".format(name))
         print("To SSH in it run: thinbox enter {}".format(name))
-        _logging_subprocess(p_start, "virsh start: {}")
-
 
     def remove(self, name):
         # check if machine exists
@@ -384,6 +379,11 @@ class Thinbox(object):
         pass
 
     def enter(self, name):
+        # if machine is not up, start it
+        if name in self._get_all_stopped_machines():
+            self._start_machine(name)
+        self._wait_for_boot(name)
+        _get_ip(name)
         _ssh_connect(name)
 
     def create(self):
@@ -439,6 +439,27 @@ class Thinbox(object):
         )
         _logging_subprocess(p_virt_install, "virt-install: {}")
 
+
+    def _wait_for_boot(self, name):
+        ip = _get_ip(name)
+        import itertools, sys
+        spinner = itertools.cycle(['-', '/', '|', '\\'])
+        print("Machine '{}' is starting. ".format(name), sep="", end="")
+        while ip == "":
+            sys.stdout.write(next(spinner))   # write the next character
+            sys.stdout.flush()                # flush stdout buffer (actual character display)
+            sys.stdout.write('\b')            # erase the last written char
+            sleep(0.5)
+            ip = _get_ip(name)
+        print()
+
+    def _start_machine(self, name):
+        p_start = subprocess.Popen(
+            ['virsh', 'start', name],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE
+        )
+        _logging_subprocess(p_start, "virsh start: {}")
 
     def _get_all_machines(self, state="--all"):
         p_virsh = subprocess.Popen(
@@ -576,6 +597,8 @@ def _get_ip(name):
     #p_arp = subprocess.Popen(['arp', '-na'], stdout=subprocess.PIPE)
     #out = p_arp.stdout.read().decode('utf8')
     #ip = [ ip for ip in out.strip().split('\n') if mac in ip ][0]
+    if ip == "":
+        return ip
     ip = re.findall( r'[0-9]+(?:\.[0-9]+){3}', ip )[0]
     logging.debug("Ip: {}".format(ip))
     return ip
