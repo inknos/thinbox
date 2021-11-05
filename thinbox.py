@@ -259,21 +259,31 @@ class Thinbox(object):
 
     @property
     def image_dir(self):
+        """Directory where vm images are stored
+
+        Defaults to $XDG_CACHE_HOME/thinbox/images
+
+        Imported from env var THINBOX_IMAGE_DIR
+
+        Returns
+        -------
+        Path of vm images
+        """
         return self._image_dir
 
     @property
     def hash_dir(self):
-        return self._hash_dir
+        """Directory where hashes are stored
 
-    def _detect_os_from_url(self, url):
-        return None
-        if url is None:
-            return None
-        domain = urlparse(url).netloc
-        if domain in RHEL_IMAGE_DOMAIN:
-            return "rhel"
-        if domain in FEDORA_IMAGE_DOMAIN:
-            return "fedora"
+        Defaults to $XDG_CACHE_HOME/thinbox/hash
+
+        Imported from env var THINBOX_HASH_DIR
+
+        Returns
+        -------
+        Path of hashes
+        """
+        return self._hash_dir
 
     def stop(self, name, opt=None):
         """Stop running machine
@@ -353,7 +363,7 @@ class Thinbox(object):
         _logging_subprocess(p_undefine, "virsh undefine: {}")
 
         # check if file exists
-        filepath = os.path.join(THINBOX_IMAGE_DIR, name + ".qcow2")
+        filepath = os.path.join(self.image_dir, name + ".qcow2")
         if os.path.exists(filepath):
             os.remove(filepath)
         else:
@@ -375,7 +385,7 @@ class Thinbox(object):
             Url of image to download
         """
         print("Pulling {}".format(url))
-        download_image(url)
+        self._download_image(url)
 
     def pull_tag(self, tag):
         """Download a qcow2 image file from tag
@@ -398,7 +408,7 @@ class Thinbox(object):
     def image_list(self):
         """Print a list of base images on the system
         """
-        print(THINBOX_BASE_DIR)
+        print(self.base_dir)
         print()
         print("{:<50} {:<20}".format("IMAGE", "HASH"))
         for name in self.base_images:
@@ -406,7 +416,7 @@ class Thinbox(object):
             none = True
             hashes = []
             for hashfunc in sorted(RHEL_IMAGE_HASH):
-                if os.path.exists(os.path.join(THINBOX_HASH_DIR, name + "." + hashfunc + ".OK")):
+                if os.path.exists(os.path.join(self.hash_dir, name + "." + hashfunc + ".OK")):
                     hashes.append(hashfunc)
                     none = False
             if none:
@@ -422,7 +432,7 @@ class Thinbox(object):
             logging.warning("Image '{}' not found".format(name))
             return
 
-        filepath = os.path.join(THINBOX_BASE_DIR, name)
+        filepath = os.path.join(self.base_dir, name)
         os.remove(filepath)
         print("Image '{}' removed.".format(name))
 
@@ -559,12 +569,12 @@ class Thinbox(object):
 
     def create_from_image(self, base_name, name):
 
-        if not os.path.exists(THINBOX_IMAGE_DIR):
-            os.makedirs(THINBOX_IMAGE_DIR)
-        image = os.path.join(THINBOX_IMAGE_DIR, name + ".qcow2")
-        base = os.path.join(THINBOX_BASE_DIR, base_name)
+        if not os.path.exists(self.image_dir):
+            os.makedirs(self.image_dir)
+        image = os.path.join(self.image_dir, name + ".qcow2")
+        base = os.path.join(self.base_dir, base_name)
         if not os.path.exists(base):
-            logging.error("Image {} not found in {}.".format(base, THINBOX_BASE_DIR))
+            logging.error("Image {} not found in {}.".format(base, self.base_dir))
             if not _image_name_wrong(base):
                 print("Maybe the filename is incorrect?")
             print("To list the available images run: thinbox image")
@@ -652,7 +662,7 @@ class Thinbox(object):
 
     def _get_base_images(self):
         image_list = []
-        for root, dirs, files in os.walk(THINBOX_BASE_DIR):
+        for root, dirs, files in os.walk(self.base_dir):
             for file in files:
                 image_list.append(file)
         return image_list
@@ -663,6 +673,104 @@ class Thinbox(object):
         soup = BeautifulSoup(page.content, 'html.parser')
         links = soup.select("a")
         return os.path.join(url, links[12].text)
+
+    def _download_image(self,url):
+        filename = os.path.split(url)[-1]
+        filepath = os.path.join(self.base_dir, filename)
+        # check dir exist
+        if not os.path.exists(CACHE_DIR):
+            os.makedirs(CACHE_DIR)
+        _download_file(url, filepath)
+        #TODO download hash
+        # this works for rhel
+        if urlparse(url).netloc in RHEL_IMAGE_DOMAIN:
+            hashpath = os.path.join(self.hash_dir, filename)
+            for ext in RHEL_IMAGE_HASH:
+                _download_file(url + "." + ext, hashpath + "." + ext)
+        if check_hash(filename, "sha256"):
+            print("Image downloaded, verified, and ready to use")
+        else:
+            print("Image downloaded and ready to use but not verified.")
+
+    def _check_hash(self,filename, ext, hashfunc):
+        """"This function returns the SHA-1 hash
+        of the file passed into it"""
+        h = hashfunc
+        filepath = os.path.join(self.base_dir, filename)
+        hashpath = os.path.join(self.hash_dir, filename + "." + ext)
+        if not os.path.exists(filepath):
+            logging.error("Image file {} does not exists.".format(filepath))
+            if not _image_name_wrong(filepath):
+                print("Maybe the filename is incorrect?")
+            print("To list the available images run: thinbox image")
+            sys.exit(1)
+        if not os.path.exists(hashpath):
+            logging.warning("Hash file {} does not exists.".format(filepath))
+            return False, "", ""
+        # if hash/imagename.hash.OK exists return True
+        if os.path.exists(hashpath + ".OK"):
+            with open(hashpath + ".OK", 'r') as file:
+                file.readline()
+                last = file.readline()
+            hf = last.strip().split(' ')[-1]
+            print("Found file that verifies a previous hash check for {}".format(ext))
+            return True, hf, hf
+
+        with open(hashpath, 'r') as file:
+            file.readline()
+            last = file.readline()
+        with open(filepath,'rb') as file:
+            chunk = 0
+            while chunk != b'':
+                chunk = file.read(1024)
+                h.update(chunk)
+        hh = h.hexdigest()
+        hf = last.strip().split(' ')[-1]
+
+        # if hash is good create hash/imagename.hash.OK
+        if hh == hf:
+            shutil.copyfile(hashpath, hashpath + ".OK")
+        return hh == hf, hh, hf
+
+    def check_hash(self,filename, hashname="md5"):
+        """Check hash of file
+
+        Parameters
+        ----------
+        filename : str
+            Name of the file to check
+
+        hashname : str, optional
+            Type of hash
+
+        Returns
+        -------
+        result : bool
+            True if hashes match
+        """
+        if hashname == "md5" or hashname == "md5sum":
+            hashfunc = hashlib.md5()
+            ext = "MD5SUM"
+        elif hashname == "sha1" or hashname == "sha1sum":
+            hashfunc = hashlib.sha1()
+            ext = "SHA1SUM"
+        elif hashname == "sha256" or hashname == "sha256sum":
+            hashfunc = hashlib.sha256()
+            ext = "SHA256SUM"
+        else:
+            logging.error("Not a valid hash function: {}".format(hashname))
+        result, hh, hf = self._check_hash(filename, ext, hashfunc)
+
+        logging.debug("File hash is {}.".format(hf))
+        logging.debug("Expected {} is {}.".format(hashname, hh))
+        if not result:
+            logging.info("Continue withouth hash verification")
+            return result
+        if not hh == hf:
+            logging.error("Hashes do not match")
+            sys.exit(1)
+
+        return result
 
 def _run_ssh_command(session, cmd):
     print("Command", cmd)
@@ -797,103 +905,6 @@ def _ssh_connect(name):
     logging.debug("options: {}".format(THINBOX_SSH_OPTIONS))
     os.system("ssh {} root@{}".format(THINBOX_SSH_OPTIONS, ip))
 
-def download_image(url):
-    filename = os.path.split(url)[-1]
-    filepath = os.path.join(THINBOX_BASE_DIR, filename)
-    # check dir exist
-    if not os.path.exists(CACHE_DIR):
-        os.makedirs(CACHE_DIR)
-    _download_file(url, filepath)
-    #TODO download hash
-    # this works for rhel
-    if urlparse(url).netloc in RHEL_IMAGE_DOMAIN:
-        hashpath = os.path.join(THINBOX_HASH_DIR, filename)
-        for ext in RHEL_IMAGE_HASH:
-            _download_file(url + "." + ext, hashpath + "." + ext)
-    if check_hash(filename, "sha256"):
-        print("Image downloaded, verified, and ready to use")
-    else:
-        print("Image downloaded and ready to use but not verified.")
-
-def check_hash(filename, hashname="md5"):
-    """Check hash of file
-
-    Parameters
-    ----------
-    filename : str
-        Name of the file to check
-
-    hashname : str, optional
-        Type of hash
-
-    Returns
-    -------
-    result : bool
-        True if hashes match
-    """
-    if hashname == "md5" or hashname == "md5sum":
-        hashfunc = hashlib.md5()
-        ext = "MD5SUM"
-    elif hashname == "sha1" or hashname == "sha1sum":
-        hashfunc = hashlib.sha1()
-        ext = "SHA1SUM"
-    elif hashname == "sha256" or hashname == "sha256sum":
-        hashfunc = hashlib.sha256()
-        ext = "SHA256SUM"
-    else:
-        logging.error("Not a valid hash function: {}".format(hashname))
-    result, hh, hf = _check_hash(filename, ext, hashfunc)
-
-    logging.debug("File hash is {}.".format(hf))
-    logging.debug("Expected {} is {}.".format(hashname, hh))
-    if not result:
-        logging.info("Continue withouth hash verification")
-        return result
-    if not hh == hf:
-        logging.error("Hashes do not match")
-        sys.exit(1)
-
-    return result
-
-def _check_hash(filename, ext, hashfunc):
-    """"This function returns the SHA-1 hash
-    of the file passed into it"""
-    h = hashfunc
-    filepath = os.path.join(THINBOX_BASE_DIR, filename)
-    hashpath = os.path.join(THINBOX_HASH_DIR, filename + "." + ext)
-    if not os.path.exists(filepath):
-        logging.error("Image file {} does not exists.".format(filepath))
-        if not _image_name_wrong(filepath):
-            print("Maybe the filename is incorrect?")
-        print("To list the available images run: thinbox image")
-        sys.exit(1)
-    if not os.path.exists(hashpath):
-        logging.warning("Hash file {} does not exists.".format(filepath))
-        return False, "", ""
-    # if hash/imagename.hash.OK exists return True
-    if os.path.exists(hashpath + ".OK"):
-        with open(hashpath + ".OK", 'r') as file:
-            file.readline()
-            last = file.readline()
-        hf = last.strip().split(' ')[-1]
-        print("Found file that verifies a previous hash check for {}".format(ext))
-        return True, hf, hf
-
-    with open(hashpath, 'r') as file:
-        file.readline()
-        last = file.readline()
-    with open(filepath,'rb') as file:
-        chunk = 0
-        while chunk != b'':
-            chunk = file.read(1024)
-            h.update(chunk)
-    hh = h.hexdigest()
-    hf = last.strip().split(' ')[-1]
-
-    # if hash is good create hash/imagename.hash.OK
-    if hh == hf:
-        shutil.copyfile(hashpath, hashpath + ".OK")
-    return hh == hf, hh, hf
 
 
 def _download_file(url, filepath):
