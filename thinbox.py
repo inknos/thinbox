@@ -388,7 +388,7 @@ class Thinbox(object):
         for m in machines:
             self.remove(m)
 
-    def pull_url(self, url):
+    def pull_url(self, url, skip=True):
         """Download a qcow2 image file from url
 
         Parameters
@@ -399,7 +399,7 @@ class Thinbox(object):
         print("Pulling {}".format(url))
         self._download_image(url)
 
-    def pull_tag(self, tag):
+    def pull_tag(self, tag, skip=True):
         """Download a qcow2 image file from tag
 
         Parameters
@@ -701,7 +701,7 @@ class Thinbox(object):
             hashpath = os.path.join(self.hash_dir, filename)
             for ext in RHEL_IMAGE_HASH:
                 _download_file(url + "." + ext, hashpath + "." + ext)
-        if check_hash(filename, "sha256"):
+        if self.check_hash(filename, "sha256"):
             print("Image downloaded, verified, and ready to use")
         else:
             print("Image downloaded and ready to use but not verified.")
@@ -980,8 +980,11 @@ def get_parser():
 
     thinbox pull
              |
-             +-- -t/--tag <tag> [autocomplete]
-             +-- -u/--url <url>
+             +-- tag <tag> [autocomplete]
+             |    |
+             +-- url <url>
+                  |
+                  +-- --skip-check
 
     thinbox image
               |
@@ -1048,15 +1051,40 @@ def get_parser():
         "pull",
         help="pull base image from TAG or URL"
     )
-    pull_parser_mg = pull_parser.add_mutually_exclusive_group(required=True)
-    pull_parser_mg.add_argument(
-        "-t", "--tag",
-        choices=list(RHEL_TAGS),
-        help="TAG of the image you want to pull"
+    pull_subparser = pull_parser.add_subparsers(
+        dest="pull_parser",
+        required=True
     )
-    pull_parser_mg.add_argument(
-        "-u", "--url",
-        help="URL of the image you want to pull"
+    pull_tag_parser = pull_subparser.add_parser(
+        "tag",
+        help="Pull from TAG"
+    )
+    pull_tag_parser_gr = pull_tag_parser.add_argument_group()
+    pull_tag_parser_gr.add_argument(
+        "name",
+        choices=list(RHEL_TAGS),
+        help="TAG to download"
+    )
+    pull_tag_parser_gr.add_argument(
+        "-s", "--skip-check",
+        action="store_const",
+        const=True,
+        help="skip hash check"
+    )
+    pull_url_parser = pull_subparser.add_parser(
+        "url",
+        help="Pull from URL"
+    )
+    pull_url_parser_gr = pull_url_parser.add_argument_group()
+    pull_url_parser_gr.add_argument(
+        "name",
+        help="URL to download"
+    )
+    pull_url_parser_gr.add_argument(
+        "-s", "--skip-check",
+        action="store_const",
+        const=True,
+        help="skip hash check"
     )
 
     # create
@@ -1338,10 +1366,10 @@ def main():
 
     tb = Thinbox()
     if args.command == "pull":
-        if args.tag:
-            tb.pull_tag(args.tag)
-        elif args.url:
-            tb.pull_url(args.url)
+        if args.pull_parser == "tag":
+            tb.pull_tag(args.name, skip=args.skip_check)
+        elif args.pull_parser == "url":
+            tb.pull_url(args.name, skip=args.skip_check)
     elif args.command == "image":
         if args.image_parser in ("list", "ls"):
             tb.image_list()
