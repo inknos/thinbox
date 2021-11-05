@@ -1,4 +1,4 @@
-#!/usr/bin/python3.10
+#!/usr/bin/python3
 # PYTHON_ARGCOMPLETE_OK
 
 import argparse
