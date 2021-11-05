@@ -339,41 +339,41 @@ class Thinbox(object):
         other   = []
         paused  = []
         if fil == "":
-            print(len(running + stopped + other + paused), "machines.")
             running = self._get_all_running_machines()
             stopped = self._get_all_stopped_machines()
             paused  = self._get_all_stopped_machines()
             other   = self._get_all_other_machines()
+            print(len(running + stopped + other + paused), "machines.")
         elif fil == "other":
-            print(len(other), fil, "machines")
             other = self._get_all_other_machines()
+            print(len(other), fil, "machines")
         elif fil == "paused":
-            print(len(paused), fil, "machines")
             paused = self._get_all_paused_machines()
+            print(len(paused), fil, "machines")
         elif fil == "running":
-            print(len(running), fil, "machines")
             running = self._get_all_running_machines()
+            print(len(running), fil, "machines")
         elif fil == "stopped":
-            print(len(stopped), fil, "machines")
             stopped = self._get_all_stopped_machines()
-
+            print(len(stopped), fil, "machines")
 
         if len(running + stopped + paused + other) == 0:
             print("To create a machine run: thinbox create -i <image> <name>")
             return
-        print("{:<30} {:<30}".format("MACHINE", "STATE"))
+        print_format = "{:<20} {:<8} {:<16} {:<10}"
+        print(print_format.format("MACHINE", "STATE", "IP", "MAC"))
         if running != []:
             for m in running:
-                print("{:<30} {:<30}".format(m,"running"))
+                print(print_format.format(m,"running", _get_ip(m), _get_mac(m)))
         if stopped != []:
             for m in stopped:
-                print("{:<30} {:<30}".format(m,"stopped"))
+                print(print_format.format(m,"stopped", _get_ip(m), _get_mac(m)))
         if paused != []:
             for m in paused:
-                print("{:<30} {:<30}".format(m,"paused"))
+                print(print_format.format(m,"paused", _get_ip(m), _get_mac(m)))
         if other != []:
             for m in other:
-                print("{:<30} {:<30}".format(m,"other"))
+                print(print_format.format(m,"other", _get_ip(m), _get_mac(m)))
 
     def image_rm(self):
         pass
