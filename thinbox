@@ -11,6 +11,7 @@ import shutil
 import subprocess
 import sys
 
+from argcomplete.completers import ChoicesCompleter
 from paramiko import SSHClient
 from scp import SCPClient
 from sysconfig import get_config_var
@@ -176,6 +177,32 @@ class Thinbox(object):
         super().__init__()
         self._url = ""
         #self._os  = _detect_os_from_url(self.url)
+        self._all_machines = self._get_all_machines()
+        self._all_running_machines = self._get_all_running_machines()
+        self._all_stopped_machines = self._get_all_stopped_machines()
+        self._all_paused_machines  = self._get_all_paused_machines()
+        self._all_other_machines   = self._get_all_other_machines()
+
+    @property
+    def all_machines(self):
+        return self._all_machines
+
+    @property
+    def all_running_machines(self):
+        return self._all_running_machines
+
+    @property
+    def all_stopped_machines(self):
+        return self._all_stopped_machines
+
+    @property
+    def all_paused_machines(self):
+        return self._all_paused_machines
+
+    @property
+    def  all_other_machines(self):
+        return self._all_other_machines
+
 
     @property
     def url(self):
@@ -261,7 +288,7 @@ class Thinbox(object):
             logging.warning("File does not exist: {}".format(filepath))
 
     def remove_all(self):
-        machines = _get_all_machines()
+        machines = self._get_all_machines()
         for m in machines:
             self.remove(m)
 
@@ -318,22 +345,22 @@ class Thinbox(object):
         paused  = []
         if fil == "":
             print(len(running + stopped + other + paused), "machines.")
-            running = _get_all_running_machines()
-            stopped = _get_all_stopped_machines()
-            paused  = _get_all_stopped_machines()
-            other   = _get_all_other_machines()
+            running = self._get_all_running_machines()
+            stopped = self._get_all_stopped_machines()
+            paused  = self._get_all_stopped_machines()
+            other   = self._get_all_other_machines()
         elif fil == "other":
             print(len(other), fil, "machines")
-            other = _get_all_other_machines()
+            other = self._get_all_other_machines()
         elif fil == "paused":
             print(len(paused), fil, "machines")
-            paused = _get_all_paused_machines()
+            paused = self._get_all_paused_machines()
         elif fil == "running":
             print(len(running), fil, "machines")
-            running = _get_all_running_machines()
+            running = self._get_all_running_machines()
         elif fil == "stopped":
             print(len(stopped), fil, "machines")
-            stopped = _get_all_stopped_machines()
+            stopped = self._get_all_stopped_machines()
 
 
         if len(running + stopped + paused + other) == 0:
@@ -412,6 +439,29 @@ class Thinbox(object):
         )
         _logging_subprocess(p_virt_install, "virt-install: {}")
 
+
+    def _get_all_machines(self, state="--all"):
+        p_virsh = subprocess.Popen(
+            ['virsh', 'list', '--name', state],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE
+        )
+        out = p_virsh.stdout.read().decode('utf8').strip().split('\n')
+        return list(filter(None, out))
+
+    def _get_all_running_machines(self):
+        return self._get_all_machines('--state-running')
+
+    def _get_all_stopped_machines(self):
+        return self._get_all_machines('--state-shutoff')
+
+    def _get_all_paused_machines(self):
+        return self._get_all_machines('--state-paused')
+
+    def _get_all_other_machines(self):
+        return self._get_all_machines('--state-other')
+
+
 def _run_ssh_command(session, cmd):
     print("Command", cmd)
 
@@ -425,27 +475,6 @@ def _run_ssh_command(session, cmd):
         logging.warning("paramiko error: {}".format(exit_code))
         for line in ssh_stderr:
             logging.warning("paramiko stderr: {}".format(line.strip()))
-
-def _get_all_machines(state="--all"):
-    p_virsh = subprocess.Popen(
-        ['virsh', 'list', '--name', state],
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE
-    )
-    out = p_virsh.stdout.read().decode('utf8').strip().split('\n')
-    return list(filter(None, out))
-
-def _get_all_running_machines():
-    return _get_all_machines('--state-running')
-
-def _get_all_stopped_machines():
-    return _get_all_machines('--state-shutoff')
-
-def _get_all_paused_machines():
-    return _get_all_machines('--state-paused')
-
-def _get_all_other_machines():
-    return _get_all_machines('--state-other')
 
 
 def _machine_exists(name):
@@ -762,6 +791,9 @@ def get_parser():
     thinbox start <vm_name>
     thinbox stop  <vm_name>
     """
+
+    tb = Thinbox()
+
     parser = argparse.ArgumentParser(#usage="%(prog)s <command> [opts] [args]",
         description="Thinbox is a tool for..",
         formatter_class=Formatter,
@@ -979,7 +1011,8 @@ def get_parser():
     )
     enter_parser.add_argument(
         "name",
-        help="name of the VM to enter"
+        help="name of the VM to enter",
+        choices=tb.all_machines
     )
     # start
     start_parser = subparsers.add_parser(
