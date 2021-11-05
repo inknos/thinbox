@@ -185,6 +185,7 @@ class Thinbox(object):
     -------
     pull(tag=None, url=None)
         Pulls a base image from a url or from a tag
+    enter(name)
     """
     def __init__(self):
         super().__init__()
@@ -225,6 +226,17 @@ class Thinbox(object):
             return "fedora"
 
     def stop(self, name, opt=None):
+        """Stop running machine
+
+        Parameters
+        ----------
+        name : str
+            Name of machine to stop
+
+        opt : str, optional
+            Options to pass to virsh command
+            Options are None, "--mode=acpi"
+        """
         if not _machine_exists(name):
             print("Machine '{}' does not exist".format(name))
             sys.exit(1)
@@ -244,6 +256,14 @@ class Thinbox(object):
         _logging_subprocess(p_shutdown, "virsh shutdown: {}")
 
     def start(self, name):
+        """Start a machine
+
+        Parameters
+        ----------
+
+        name : str
+            Name of machine to start
+        """
         if not _machine_exists(name):
             print("Machine '{}' does not exist".format(name))
             sys.exit(1)
@@ -379,6 +399,14 @@ class Thinbox(object):
 
 
     def list(self, fil=""):
+        """List machines
+
+        Parameters
+        ----------
+        fil : str, optional
+            Filter machines by state
+            Options are "", "running", "stopped", "paused", "other"
+        """
         running = []
         stopped = []
         other   = []
@@ -424,6 +452,15 @@ class Thinbox(object):
         pass
 
     def enter(self, name):
+        """Enter machine via ssh
+
+        If machine is stopped, start it
+
+        Parameters
+        ----------
+        name : str
+            Name of machine to ssh into
+        """
         # if machine is not up, start it
         if name in self._get_all_stopped_machines():
             self._start_machine(name)
