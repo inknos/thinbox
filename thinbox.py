@@ -45,22 +45,27 @@ except ImportError:
 THINBOX = os.path.basename(sys.argv[0])
 
 # config directory according to XDG
-XDG_CONFIG_HOME = os.environ.get("XDG_CONFIG_HOME", os.path.expanduser("~/.config"))
+XDG_CONFIG_HOME = os.environ.get(
+    "XDG_CONFIG_HOME", os.path.expanduser("~/.config"))
 CONFIG_DIR = os.path.join(XDG_CONFIG_HOME, "thinbox")
 USER_CONFIG = os.path.join(CONFIG_DIR, "user.thinbox.yaml")
 
 # cache directory according to XDG
-XDG_CACHE_HOME = os.environ.get("XDG_CACHE_HOME", os.path.expanduser("~/.cache"))
+XDG_CACHE_HOME = os.environ.get(
+    "XDG_CACHE_HOME", os.path.expanduser("~/.cache"))
 CACHE_DIR = os.path.join(XDG_CACHE_HOME, "thinbox")
 
 # image directory and hashes
-THINBOX_BASE_DIR = os.environ.get("THINBOX_BASE_DIR", os.path.join(CACHE_DIR, "base"))
-THINBOX_IMAGE_DIR = os.environ.get("THINBOX_IMAGE_DIR", os.path.join(CACHE_DIR, "images"))
-THINBOX_HASH_DIR  = os.environ.get("THINBOX_HASH_DIR",  os.path.join(CACHE_DIR, "hash"))
+THINBOX_BASE_DIR = os.environ.get(
+    "THINBOX_BASE_DIR", os.path.join(CACHE_DIR, "base"))
+THINBOX_IMAGE_DIR = os.environ.get(
+    "THINBOX_IMAGE_DIR", os.path.join(CACHE_DIR, "images"))
+THINBOX_HASH_DIR = os.environ.get(
+    "THINBOX_HASH_DIR",  os.path.join(CACHE_DIR, "hash"))
 
 # virtual variables
-THINBOX_MEMORY="1024"
-THINBOX_SSH_OPTIONS="-o StrictHostKeyChecking=no -o GlobalKnownHostsFile=/dev/null -o UserKnownHostsFile=/dev/null"
+THINBOX_MEMORY = "1024"
+THINBOX_SSH_OPTIONS = "-o StrictHostKeyChecking=no -o GlobalKnownHostsFile=/dev/null -o UserKnownHostsFile=/dev/null"
 
 # detect if running in a container
 THINBOX_CONTAINER = os.environ.get("THINBOX_CONTAINER", "0") == "1"
@@ -104,6 +109,7 @@ RHEL_TAGS = {
     "rhel8-latest"
 }
 
+
 def _url_is_valid(url):
     """Validate a url format based on Django validator
 
@@ -123,13 +129,15 @@ def _url_is_valid(url):
     """
 
     regex = re.compile(
-        r'^(?:http|ftp)s?://' # http:// or https://
-        r'(?:(?:[A-Z0-9](?:[A-Z0-9-]{0,61}[A-Z0-9])?\.)+(?:[A-Z]{2,6}\.?|[A-Z0-9-]{2,}\.?)|' #domain...
-        r'localhost|' #localhost...
-        r'\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})' # ...or ip
-        r'(?::\d+)?' # optional port
+        r'^(?:http|ftp)s?://'  # http:// or https://
+        # domain...
+        r'(?:(?:[A-Z0-9](?:[A-Z0-9-]{0,61}[A-Z0-9])?\.)+(?:[A-Z]{2,6}\.?|[A-Z0-9-]{2,}\.?)|'
+        r'localhost|'  # localhost...
+        r'\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})'  # ...or ip
+        r'(?::\d+)?'  # optional port
         r'(?:/?|[/?]\S+)$', re.IGNORECASE)
     return re.match(regex, url) is not None
+
 
 def _ping_url(url):
     """Ping a url to see if site is available
@@ -159,11 +167,13 @@ def _ping_url(url):
     result = ping_stdout.decode('utf-8')
     return "0% packet loss" in result
 
+
 def is_virt_enabled():
     env = os.environ.copy()
     env["LC_LANG"] = "C"
     out = subprocess.run(["lscpu"], env=env, stdout=subprocess.PIPE)
     return "VT-x" in str(out.stdout)
+
 
 class Thinbox(object):
     """
@@ -207,13 +217,14 @@ class Thinbox(object):
     enter(name)
         Enter machine
     """
+
     def __init__(self):
         super().__init__()
         self._all_machines = self._get_all_machines()
         self._all_running_machines = self._get_all_running_machines()
         self._all_stopped_machines = self._get_all_stopped_machines()
-        self._all_paused_machines  = self._get_all_paused_machines()
-        self._all_other_machines   = self._get_all_other_machines()
+        self._all_paused_machines = self._get_all_paused_machines()
+        self._all_other_machines = self._get_all_other_machines()
         self._base_dir = THINBOX_BASE_DIR
         self._image_dir = THINBOX_IMAGE_DIR
         self._hash_dir = THINBOX_HASH_DIR
@@ -345,7 +356,8 @@ class Thinbox(object):
         """
         # check if machine exists
         if not _machine_exists(name):
-            logging.error("Machine with name '{}' does not exist.".format(name))
+            logging.error(
+                "Machine with name '{}' does not exist.".format(name))
             sys.exit(1)
 
         # stop the machine
@@ -400,7 +412,8 @@ class Thinbox(object):
             sys.exit(1)
 
         if not RHEL_IMAGE_URL:
-            logging.warning("Variable RHEL_IMAGE_URL. If you know where to pull images please export this variable locally.")
+            logging.warning(
+                "Variable RHEL_IMAGE_URL. If you know where to pull images please export this variable locally.")
             sys.exit(1)
         url = self._generate_url_from_tag(tag)
         self.pull_url(url)
@@ -462,7 +475,8 @@ class Thinbox(object):
         """
         # machine exist?
         if not _machine_exists(name):
-            logging.error("Machine with name '{}' does not exist.".format(name))
+            logging.error(
+                "Machine with name '{}' does not exist.".format(name))
             sys.exit(1)
         # TODO
         # is machine running?
@@ -493,7 +507,6 @@ class Thinbox(object):
         if command:
             _run_ssh_command(ssh, command)
 
-
     def list(self, fil=""):
         """List machines
 
@@ -505,13 +518,13 @@ class Thinbox(object):
         """
         running = []
         stopped = []
-        other   = []
-        paused  = []
+        other = []
+        paused = []
         if fil == "":
             running = self._get_all_running_machines()
             stopped = self._get_all_stopped_machines()
-            paused  = self._get_all_stopped_machines()
-            other   = self._get_all_other_machines()
+            paused = self._get_all_stopped_machines()
+            other = self._get_all_other_machines()
             print(len(running + stopped + other + paused), "machines.")
         elif fil == "other":
             other = self._get_all_other_machines()
@@ -533,16 +546,16 @@ class Thinbox(object):
         print(print_format.format("MACHINE", "STATE", "IP", "MAC"))
         if running != []:
             for m in running:
-                print(print_format.format(m,"running", _get_ip(m), _get_mac(m)))
+                print(print_format.format(m, "running", _get_ip(m), _get_mac(m)))
         if stopped != []:
             for m in stopped:
-                print(print_format.format(m,"stopped", _get_ip(m), _get_mac(m)))
+                print(print_format.format(m, "stopped", _get_ip(m), _get_mac(m)))
         if paused != []:
             for m in paused:
-                print(print_format.format(m,"paused", _get_ip(m), _get_mac(m)))
+                print(print_format.format(m, "paused", _get_ip(m), _get_mac(m)))
         if other != []:
             for m in other:
-                print(print_format.format(m,"other", _get_ip(m), _get_mac(m)))
+                print(print_format.format(m, "other", _get_ip(m), _get_mac(m)))
 
     def image_rm(self):
         pass
@@ -574,7 +587,8 @@ class Thinbox(object):
         image = os.path.join(self.image_dir, name + ".qcow2")
         base = os.path.join(self.base_dir, base_name)
         if not os.path.exists(base):
-            logging.error("Image {} not found in {}.".format(base, self.base_dir))
+            logging.error("Image {} not found in {}.".format(
+                base, self.base_dir))
             if not _image_name_wrong(base):
                 print("Maybe the filename is incorrect?")
             print("To list the available images run: thinbox image")
@@ -589,7 +603,7 @@ class Thinbox(object):
         p_qemu = subprocess.Popen([
             'qemu-img', 'create',
             '-f', 'qcow2', '-o',
-            'backing_file='+ base +',backing_fmt=qcow2', image],
+            'backing_file=' + base + ',backing_fmt=qcow2', image],
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE
         )
@@ -617,10 +631,10 @@ class Thinbox(object):
         )
         _logging_subprocess(p_virt_install, "virt-install: {}")
 
-
     def _wait_for_boot(self, name):
         ip = _get_ip(name)
-        import itertools, sys
+        import itertools
+        import sys
         spinner = itertools.cycle(['-', '/', '|', '\\'])
         print("Machine '{}' is starting. ".format(name), sep="", end="")
         while ip == "":
@@ -674,14 +688,14 @@ class Thinbox(object):
         links = soup.select("a")
         return os.path.join(url, links[12].text)
 
-    def _download_image(self,url):
+    def _download_image(self, url):
         filename = os.path.split(url)[-1]
         filepath = os.path.join(self.base_dir, filename)
         # check dir exist
         if not os.path.exists(CACHE_DIR):
             os.makedirs(CACHE_DIR)
         _download_file(url, filepath)
-        #TODO download hash
+        # TODO download hash
         # this works for rhel
         if urlparse(url).netloc in RHEL_IMAGE_DOMAIN:
             hashpath = os.path.join(self.hash_dir, filename)
@@ -692,7 +706,7 @@ class Thinbox(object):
         else:
             print("Image downloaded and ready to use but not verified.")
 
-    def _check_hash(self,filename, ext, hashfunc):
+    def _check_hash(self, filename, ext, hashfunc):
         """"This function returns the SHA-1 hash
         of the file passed into it"""
         h = hashfunc
@@ -719,7 +733,7 @@ class Thinbox(object):
         with open(hashpath, 'r') as file:
             file.readline()
             last = file.readline()
-        with open(filepath,'rb') as file:
+        with open(filepath, 'rb') as file:
             chunk = 0
             while chunk != b'':
                 chunk = file.read(1024)
@@ -732,7 +746,7 @@ class Thinbox(object):
             shutil.copyfile(hashpath, hashpath + ".OK")
         return hh == hf, hh, hf
 
-    def check_hash(self,filename, hashname="md5"):
+    def check_hash(self, filename, hashname="md5"):
         """Check hash of file
 
         Parameters
@@ -772,11 +786,12 @@ class Thinbox(object):
 
         return result
 
+
 def _run_ssh_command(session, cmd):
     print("Command", cmd)
 
     ssh_stdin, ssh_stdout, ssh_stderr = session.exec_command(cmd)
-    exit_code = ssh_stdout.channel.recv_exit_status() # handles async exit error
+    exit_code = ssh_stdout.channel.recv_exit_status()  # handles async exit error
 
     for line in ssh_stdout:
         print(line.strip())
@@ -809,8 +824,10 @@ def _machine_exists(name):
     )
     return name in p_list.stdout.read().decode('utf8').strip().split('\n')
 
+
 def _image_name_wrong(name):
     return name.endswith(".qcow2")
+
 
 def _machine_is_running(name):
     """Returns True if VM name refers to an existing and running machine
@@ -834,6 +851,7 @@ def _machine_is_running(name):
     )
     return _machine_exists(name) and name in p_list.stdout.read().decode('utf8').strip().split('\n')
 
+
 def _logging_subprocess(process, output):
     for so in process.stdout.read().decode('utf8').split('\n'):
         if so == '':
@@ -843,6 +861,7 @@ def _logging_subprocess(process, output):
         if se == '':
             continue
         logging.error(output.format(se))
+
 
 def _get_mac(name):
     """Gets MAC of machine
@@ -858,10 +877,11 @@ def _get_mac(name):
         MAC of machine
     """
     p_virsh = subprocess.Popen(['virsh', 'domiflist', name],
-            stdout=subprocess.PIPE)
+                               stdout=subprocess.PIPE)
     mac = p_virsh.stdout.read().decode('utf8')
     logging.debug("mac: {}".format(mac))
     return mac.strip()[-17:]
+
 
 def _get_ip(name):
     """Gets ip from arp table
@@ -888,9 +908,10 @@ def _get_ip(name):
     #ip = [ ip for ip in out.strip().split('\n') if mac in ip ][0]
     if ip == "":
         return ip
-    ip = re.findall( r'[0-9]+(?:\.[0-9]+){3}', ip )[0]
+    ip = re.findall(r'[0-9]+(?:\.[0-9]+){3}', ip)[0]
     logging.debug("Ip: {}".format(ip))
     return ip
+
 
 def _ssh_connect(name):
     """Connect and open interactive ssh shell
@@ -904,7 +925,6 @@ def _ssh_connect(name):
     ip = _get_ip(name)
     logging.debug("options: {}".format(THINBOX_SSH_OPTIONS))
     os.system("ssh {} root@{}".format(THINBOX_SSH_OPTIONS, ip))
-
 
 
 def _download_file(url, filepath):
@@ -942,10 +962,12 @@ def _download_file(url, filepath):
                 downloaded += len(data)
                 f.write(data)
                 done = int(50*downloaded/total)
-                sys.stdout.write('\r[{}{}]'.format('█' * done, '.' * (50-done)))
+                sys.stdout.write('\r[{}{}]'.format(
+                    '█' * done, '.' * (50-done)))
                 sys.stdout.flush()
     sys.stdout.write('\n')
     return True
+
 
 def get_parser():
     """
@@ -1007,15 +1029,15 @@ def get_parser():
 
     tb = Thinbox()
 
-    parser = argparse.ArgumentParser(#usage="%(prog)s <command> [opts] [args]",
+    parser = argparse.ArgumentParser(  # usage="%(prog)s <command> [opts] [args]",
         description="Thinbox is a tool for..",
         formatter_class=Formatter,
     )
     parser.add_argument(
-            "-v",
-            "--verbose",
-            help="increase output verbosity",
-            action="store_true"
+        "-v",
+        "--verbose",
+        help="increase output verbosity",
+        action="store_true"
     )
 
     subparsers = parser.add_subparsers(
@@ -1030,7 +1052,7 @@ def get_parser():
     pull_parser_mg = pull_parser.add_mutually_exclusive_group(required=True)
     pull_parser_mg.add_argument(
         "-t", "--tag",
-        choices = list(RHEL_TAGS),
+        choices=list(RHEL_TAGS),
         help="TAG of the image you want to pull"
     )
     pull_parser_mg.add_argument(
@@ -1047,7 +1069,8 @@ def get_parser():
         "name",
         help="name of the VM"
     )
-    create_parser_mg = create_parser.add_mutually_exclusive_group(required=True)
+    create_parser_mg = create_parser.add_mutually_exclusive_group(
+        required=True)
     create_parser_mg.add_argument(
         "-i", "--image",
         choices=tb.base_images,
@@ -1068,7 +1091,7 @@ def get_parser():
     # copy
     copy_parser = subparsers.add_parser(
         "copy",
-        aliases = ["cp"],
+        aliases=["cp"],
         help="copy files into specified VM"
     )
     copy_parser.add_argument(
@@ -1100,7 +1123,7 @@ def get_parser():
     # list
     list_parser = subparsers.add_parser(
         "list",
-        aliases = ['ls'],
+        aliases=['ls'],
         help="list available VMs"
     )
     list_parser_mg = list_parser.add_mutually_exclusive_group(required=False)
@@ -1137,10 +1160,11 @@ def get_parser():
     # remove
     remove_parser = subparsers.add_parser(
         "remove",
-        aliases = ['rm'],
+        aliases=['rm'],
         help="remove VM"
     )
-    remove_parser_mg = remove_parser.add_mutually_exclusive_group(required=True)
+    remove_parser_mg = remove_parser.add_mutually_exclusive_group(
+        required=True)
     remove_parser_mg.add_argument(
         "-a", "--all",
         action='store_const',
@@ -1155,7 +1179,7 @@ def get_parser():
     # image
     image_parser = subparsers.add_parser(
         "image",
-        aliases = ['img'],
+        aliases=['img'],
         help="manage base images"
     )
     image_subparser = image_parser.add_subparsers(
@@ -1168,10 +1192,11 @@ def get_parser():
     )
     image_remove_parser = image_subparser.add_parser(
         "remove",
-        aliases = ["rm"],
+        aliases=["rm"],
         help="Remove image"
     )
-    image_remove_parser_mg = image_remove_parser.add_mutually_exclusive_group(required=True)
+    image_remove_parser_mg = image_remove_parser.add_mutually_exclusive_group(
+        required=True)
     image_remove_parser_mg.add_argument(
         "-a", "--all",
         action='store_const',
@@ -1196,7 +1221,8 @@ def get_parser():
         aliases=["ls"],
         help="VM list "
     )
-    vm_list_parser_mg = vm_list_parser.add_mutually_exclusive_group(required=False)
+    vm_list_parser_mg = vm_list_parser.add_mutually_exclusive_group(
+        required=False)
     vm_list_parser_mg.add_argument(
         "-a", "--all",
         action="store_const",
@@ -1232,7 +1258,8 @@ def get_parser():
         aliases=['rm'],
         help="remove VM"
     )
-    vm_remove_parser_mg = vm_remove_parser.add_mutually_exclusive_group(required=True)
+    vm_remove_parser_mg = vm_remove_parser.add_mutually_exclusive_group(
+        required=True)
     vm_remove_parser_mg.add_argument(
         "-a", "--all",
         action='store_const',
@@ -1288,10 +1315,10 @@ class Formatter(argparse.HelpFormatter):
         if isinstance(action, argparse._SubParsersAction):
             parts = []
             for i in action._get_subactions():
-                parts.append("%*s%-21s %s" % (self._current_indent, "", i.metavar, i.help))
+                parts.append("%*s%-21s %s" %
+                             (self._current_indent, "", i.metavar, i.help))
             return "\n".join(parts)
         return super(Formatter, self)._format_action(action)
-
 
 
 def main():
