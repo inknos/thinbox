@@ -370,6 +370,20 @@ class Thinbox(object):
         """
         _image_list()
 
+    def image_remove(self, name):
+        # check if image exist
+        if name not in self.base_images:
+            logging.warning("Image '{}' not found".format(name))
+            return
+
+        filepath = os.path.join(THINBOX_BASE_DIR, name)
+        os.remove(filepath)
+        print("Image '{}' removed.".format(name))
+
+    def image_remove_all(self):
+        for name in self.base_images:
+            self.image_remove(name)
+
     def copy(self, files, name, directory="/root", pre="", command=""):
         """Copy file or files into a running machine
 
@@ -1247,7 +1261,15 @@ def main():
         elif args.url:
             tb.pull_url(args.url)
     elif args.command == "image":
-        tb.image()
+        if args.image_parser in ("list", "ls"):
+            tb.image()
+        elif args.image_parser in ("remove", "rm"):
+            if args.all:
+                tb.image_remove_all()
+            else:
+                tb.image_remove(args.name)
+        else:
+            tb.image()
     elif args.command == "create":
         if args.image:
             tb.create_from_image(args.image, args.name)
