@@ -10,7 +10,7 @@ URL:            https://github.com/inknos/thinbox
 Source0:        %{url}/archive/refs/tags/v%{version}.tar.gz
 
 Requires:       python3-argcomplete
-Requires:       python3-beautifulsoup4.noarch
+Requires:       python3-beautifulsoup4
 Requires:       python3-paramiko
 Requires:       python3-requests
 Requires:       python3-scp
