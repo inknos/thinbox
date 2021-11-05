@@ -1088,6 +1088,31 @@ def get_parser():
         aliases = ['img'],
         help="manage base images"
     )
+    image_subparser = image_parser.add_subparsers(
+        dest="image_parser"
+    )
+    image_list_parser = image_subparser.add_parser(
+        "list",
+        aliases=["ls"],
+        help="Image list"
+    )
+    image_remove_parser = image_subparser.add_parser(
+        "remove",
+        aliases = ["rm"],
+        help="Remove image"
+    )
+    image_remove_parser_mg = image_remove_parser.add_mutually_exclusive_group(required=True)
+    image_remove_parser_mg.add_argument(
+        "-a", "--all",
+        action='store_const',
+        const=True,
+        help="Remove all VMs"
+    )
+    image_remove_parser_mg.add_argument(
+        "name",
+        nargs="?",
+        help="Remove a VM of name"
+    )
     # vm
     vm_parser = subparsers.add_parser(
         "vm",
