@@ -319,7 +319,8 @@ class Thinbox(object):
             self.remove(m)
 
     def pull(self, tag=None, url=None):
-        """Download a qcow2 image file from tag or url
+        """
+        Download a qcow2 image file from tag or url
 
         Parameters
         ----------
