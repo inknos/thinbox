@@ -11,6 +11,7 @@ import shutil
 import subprocess
 import sys
 
+from bs4 import BeautifulSoup
 from time import sleep
 from argcomplete.completers import ChoicesCompleter
 from paramiko import SSHClient
@@ -89,6 +90,7 @@ PATHS = {
     "PYTHONPATH": [PATHS_ENV["PYTHON3_SITEARCH"], PATHS_ENV["PYTHON3_SITELIB"]],
 }
 
+RHEL_IMAGE_URL = os.environ.get("RHEL_IMAGE_URL", None)
 RHEL_IMAGE_HASH = {
     "MD5SUM",
     "SHA1SUM",
@@ -97,6 +99,9 @@ RHEL_IMAGE_HASH = {
 RHEL_IMAGE_DOMAIN = {
     "download-node-02.eng.bos.redhat.com",
     "redhat.com"
+}
+RHEL_TAGS = {
+    "rhel8-latest"
 }
 
 def _url_is_valid(url):
@@ -326,23 +331,27 @@ class Thinbox(object):
         for m in machines:
             self.remove(m)
 
-    def pull(self, tag=None, url=None):
-        """Download a qcow2 image file from tag or url
+    def pull_url(self, url):
+        """Download a qcow2 image file from url
+
+        Parameters
+        ----------
+        url : str
+            Url of image to download
+        """
+        print("Pulling {}".format(url))
+        download_image(url)
+
+    def pull_tag(self, tag):
+        """Download a qcow2 image file from tag
 
         Parameters
         ----------
         tag : str
             Tag of image to download (RHEL only)
-
-        url : str
-            Url of image to download
         """
-
-        if tag:
-            print("tag is", tag)
-
-        if url:
-            download_image(url)
+        url = self._generate_url_from_tag(tag)
+        self.pull_url(url)
 
     def image(self):
         """Print a list of base images on the system
@@ -581,6 +590,12 @@ class Thinbox(object):
                 image_list.append(file)
         return image_list
 
+    def _generate_url_from_tag(self, tag):
+        url = RHEL_IMAGE_URL
+        page = requests.get(url)
+        soup = BeautifulSoup(page.content, 'html.parser')
+        links = soup.select("a")
+        return os.path.join(url, links[12].text)
 
 def _run_ssh_command(session, cmd):
     print("Command", cmd)
@@ -1195,7 +1210,10 @@ def main():
 
     tb = Thinbox()
     if args.command == "pull":
-        tb.pull(tag=args.tag, url=args.url)
+        if args.tag:
+            tb.pull_tag(args.tag)
+        elif args.url:
+            tb.pull_url(args.url)
     elif args.command == "image":
         tb.image()
     elif args.command == "create":
