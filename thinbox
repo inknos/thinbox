@@ -236,7 +236,7 @@ class Thinbox(object):
     def remove(self, name):
         # check if machine exists
         if not _machine_exists(name):
-            logging.error("Machine with name does not '{}' exists.".format(name))
+            logging.error("Machine with name '{}' does not exist.".format(name))
             sys.exit(1)
 
         # stop the machine
@@ -893,9 +893,17 @@ def get_parser():
         aliases = ['rm'],
         help="remove VM"
     )
-    remove_parser.add_argument(
+    remove_parser_mg = remove_parser.add_mutually_exclusive_group(required=True)
+    remove_parser_mg.add_argument(
+        "-a", "--all",
+        action='store_const',
+        const=True,
+        help="Remove all VMs"
+    )
+    remove_parser_mg.add_argument(
         "name",
-        help="Name of VM to remove"
+        nargs="?",
+        help="Remove a VM of name"
     )
     # image
     image_parser = subparsers.add_parser(
@@ -1060,6 +1068,11 @@ def main():
             tb.list(fil="stopped")
         else:
             tb.list()
+    elif args.command == "remove" or args.command == "rm":
+        if args.all:
+            tb.remove_all()
+        else:
+            tb.remove(args.name)
     elif args.command == "vm":
         if args.vm_parser == "list" or args.vm_parser == "ls":
             if args.all:
