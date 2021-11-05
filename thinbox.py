@@ -861,20 +861,20 @@ def get_parser():
     Returns a parser with this structure
     thinbox create
                |
-               +-- -i/--image <image> <vm_name>
-               +-- -p/--path  <path>  <vm_name>
-               +-- -t/--tag   <image> <vm_name>
-               +-- -u/--url   <url>   <vm_name>
+               +-- -i/--image <image> <vm_name> [autocomplete]
+               x-- -p/--path  <path>  <vm_name>
+               x-- -t/--tag   <image> <vm_name>
+               x-- -u/--url   <url>   <vm_name>
 
     thinbox pull
              |
-             +-- -t/--tag <tag>
+             x-- -t/--tag <tag>
              +-- -u/--url <url>
 
     thinbox image
               |
               +-- list/ls
-              +-- remove/rm <image>
+              +-- remove/rm <image> [autocomplete]
                         |
                         +-- -a
 
@@ -893,7 +893,7 @@ def get_parser():
         |       +-- -p/--paused      |
         |       +-- -r/--running     |
         |       +-- -s/--stopped     |
-        +-- remove/rm <vm_name> --------|
+        +-- remove/rm <vm_name> --------| [autocomplete]
                   |                  |  |
                   +-- -a ------------------|
                                      |  |  |
@@ -905,13 +905,13 @@ def get_parser():
            |    +-- -p/--paused         |  |
            |    +-- -r/--running        |  |
            |    +-- -s/--stopped        |  |
-           +-- remove/rm <vm_name> -----|  |
+           +-- remove/rm <vm_name> -----|  | [autocomplete]
                      |                     |
                      +-- -a ---------------|
 
-    thinbox enter <vm_name>
-    thinbox start <vm_name>
-    thinbox stop  <vm_name>
+    thinbox enter <vm_name> [autocomplete]
+    thinbox start <vm_name> [autocomplete]
+    thinbox stop  <vm_name> [autocomplete]
     """
 
     tb = Thinbox()
