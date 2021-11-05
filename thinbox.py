@@ -189,6 +189,16 @@ class Thinbox(object):
     base_images : list
         list of all base images available
 
+    base_dir : str
+        Directory where base images are stored
+
+    image_dir : str
+        Directory where vm images are stored
+
+    hash_dir : str
+        Directory where hashes are stored
+
+
     Methods
     -------
     pull(tag=None, url=None)
