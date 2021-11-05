@@ -204,6 +204,9 @@ class Thinbox(object):
         self._all_stopped_machines = self._get_all_stopped_machines()
         self._all_paused_machines  = self._get_all_paused_machines()
         self._all_other_machines   = self._get_all_other_machines()
+        self._base_dir = THINBOX_BASE_DIR
+        self._image_dir = THINBOX_IMAGE_DIR
+        self._hash_dir = THINBOX_HASH_DIR
         self._base_images = self._get_base_images()
 
     @property
@@ -229,6 +232,28 @@ class Thinbox(object):
     @property
     def base_images(self):
         return self._base_images
+
+    @property
+    def base_dir(self):
+        """Directory where base images are stored
+
+        Defaults to $XDG_CACHE_HOME/thinbox/base
+
+        Imported from env var THINBOX_BASE_DIR
+
+        Returns
+        -------
+        Path of base images
+        """
+        return self._base_dir
+
+    @property
+    def image_dir(self):
+        return self._image_dir
+
+    @property
+    def hash_dir(self):
+        return self._hash_dir
 
     def _detect_os_from_url(self, url):
         return None
@@ -750,6 +775,13 @@ def _get_ip(name):
     return ip
 
 def _ssh_connect(name):
+    """Connect and open interactive ssh shell
+
+    Parameters
+    ----------
+    name : str
+        Machine name
+    """
     mac = _get_mac(name)
     ip = _get_ip(name)
     logging.debug("options: {}".format(THINBOX_SSH_OPTIONS))
@@ -774,6 +806,21 @@ def download_image(url):
         print("Image downloaded and ready to use but not verified.")
 
 def check_hash(filename, hashname="md5"):
+    """Check hash of file
+
+    Parameters
+    ----------
+    filename : str
+        Name of the file to check
+
+    hashname : str, optional
+        Type of hash
+
+    Returns
+    -------
+    result : bool
+        True if hashes match
+    """
     if hashname == "md5" or hashname == "md5sum":
         hashfunc = hashlib.md5()
         ext = "MD5SUM"
