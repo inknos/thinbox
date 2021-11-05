@@ -11,9 +11,23 @@ import shutil
 import subprocess
 import sys
 
-from distutils.sysconfig import get_python_lib
 from sysconfig import get_config_var
 from urllib.parse import urlparse
+
+# TODO
+# substitute this to avoid deprecation error
+# ~/.local/bin/thinbox:14: DeprecationWarning: The distutils package is deprecated and slated for removal in Python 3.12. Use setuptools or check PEP 632 for potential alternatives
+#  from distutils.sysconfig import get_python_lib
+# ~/.local/bin/thinbox:14: DeprecationWarning: The distutils.sysconfig module is deprecated, use sysconfig instead
+#  from distutils.sysconfig import get_python_lib
+if sys.version_info <= (3, 10):
+    from distutils.sysconfig import get_python_lib
+else:
+    def get_python_lib(i=0):
+        if i == 1:
+            return "/usr/lib64/python3.10/site-packages"
+        return os.path.join(get_config_var("BINLIBDEST"), "site-packages")
+
 
 try:
     import argcomplete
