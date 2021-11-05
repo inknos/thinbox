@@ -360,15 +360,30 @@ class Thinbox(object):
         url = self._generate_url_from_tag(tag)
         self.pull_url(url)
 
-    def image(self):
-        """Print a list of base images on the system
-        """
-        self.image_list()
-
     def image_list(self):
         """Print a list of base images on the system
         """
-        _image_list()
+        image_list = []
+        for root, dirs, files in os.walk(THINBOX_BASE_DIR):
+            for file in files:
+                image_list.append(file)
+        print(THINBOX_BASE_DIR)
+        print()
+        print("{:<50} {:<20}".format("IMAGE", "HASH"))
+        for name in image_list:
+            print("{:<50} ".format(name), end="")
+            none = True
+            hashes = []
+            for hashfunc in sorted(RHEL_IMAGE_HASH):
+                if os.path.exists(os.path.join(THINBOX_HASH_DIR, name + "." + hashfunc + ".OK")):
+                    hashes.append(hashfunc)
+                    none = False
+            if none:
+                print("NONE", end="")
+            else:
+                print(",".join(hashes), end="")
+
+            print()
 
     def image_remove(self, name):
         # check if image exist
@@ -743,29 +758,6 @@ def _ssh_connect(name):
     ip = _get_ip(name)
     logging.debug("options: {}".format(THINBOX_SSH_OPTIONS))
     os.system("ssh {} root@{}".format(THINBOX_SSH_OPTIONS, ip))
-
-def _image_list():
-    image_list = []
-    for root, dirs, files in os.walk(THINBOX_BASE_DIR):
-        for file in files:
-            image_list.append(file)
-    print(THINBOX_BASE_DIR)
-    print()
-    print("{:<50} {:<20}".format("IMAGE", "HASH"))
-    for name in image_list:
-        print("{:<50} ".format(name), end="")
-        none = True
-        hashes = []
-        for hashfunc in sorted(RHEL_IMAGE_HASH):
-            if os.path.exists(os.path.join(THINBOX_HASH_DIR, name + "." + hashfunc + ".OK")):
-                hashes.append(hashfunc)
-                none = False
-        if none:
-            print("NONE", end="")
-        else:
-            print(",".join(hashes), end="")
-
-        print()
 
 def download_image(url):
     filename = os.path.split(url)[-1]
@@ -1262,14 +1254,14 @@ def main():
             tb.pull_url(args.url)
     elif args.command == "image":
         if args.image_parser in ("list", "ls"):
-            tb.image()
+            tb.image_list()
         elif args.image_parser in ("remove", "rm"):
             if args.all:
                 tb.image_remove_all()
             else:
                 tb.image_remove(args.name)
         else:
-            tb.image()
+            tb.image_list()
     elif args.command == "create":
         if args.image:
             tb.create_from_image(args.image, args.name)
