@@ -286,26 +286,29 @@ class Thinbox(object):
             sys.exit(1)
         # get ip
         ip = _get_ip(name)
+
+        ssh = SSHClient()
+        ssh.load_system_host_keys()
+        ssh.connect(hostname=ip, username="root")
+
         # run command
         if pre:
-            print("Command", pre)
+            _run_ssh_command(ssh, pre)
 
         # copy file
         if directory:
             destination = directory
         else:
             destination = "/root"
-        ssh = SSHClient()
-        ssh.load_system_host_keys()
-        ssh.connect(hostname=ip, username="root")
-
         with SCPClient(ssh.get_transport()) as scp:
             for file in files:
-                scp.put(file, os.path.join(destination, os.path.basename(file)))
+                dest = os.path.join(destination, os.path.basename(file))
+                scp.put(file, dest)
+                print("Copied file {} into {}.".format(file, dest))
 
         # run post
         if command:
-            print("Command", command)
+            _run_ssh_command(ssh, command)
 
 
     def list(self, fil=""):
@@ -408,6 +411,20 @@ class Thinbox(object):
             stderr=subprocess.PIPE
         )
         _logging_subprocess(p_virt_install, "virt-install: {}")
+
+def _run_ssh_command(session, cmd):
+    print("Command", cmd)
+
+    ssh_stdin, ssh_stdout, ssh_stderr = session.exec_command(cmd)
+    exit_code = ssh_stdout.channel.recv_exit_status() # handles async exit error
+
+    for line in ssh_stdout:
+        print(line.strip())
+
+    if exit_code != 0:
+        logging.warning("paramiko error: {}".format(exit_code))
+        for line in ssh_stderr:
+            logging.warning("paramiko stderr: {}".format(line.strip()))
 
 def _get_all_machines(state="--all"):
     p_virsh = subprocess.Popen(
