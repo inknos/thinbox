@@ -678,6 +678,13 @@ def get_parser():
               +-- remove/rm <image>
                         |
                         +-- -a
+
+    thinbox copy <files> <vm_name>
+             |
+             +-- -c/--command   <command to exec before>
+             +-- -d/--dir       <destination dir>
+             +-- -p/--pre       <command to exec after>
+
     thinbox
         |
         +-- list/ls -----------------|
@@ -762,6 +769,36 @@ def get_parser():
     create_parser_mg.add_argument(
         "-u", "--url",
         help="URL of the image you want to pull"
+    )
+    copy_parser = subparsers.add_parser(
+        "copy",
+        aliases = ["cp"],
+        help="copy files into specified VM"
+    )
+    copy_parser.add_argument(
+        "file",
+        nargs="+",
+        help="file or files to copy"
+    )
+    copy_parser.add_argument(
+        "name",
+        help="name of the VM"
+    )
+    copy_parser_mg = copy_parser.add_argument_group()
+    copy_parser_mg.add_argument(
+        "-c",
+        "--comand",
+        help="command to execute after the copy"
+    )
+    copy_parser_mg.add_argument(
+        "-d",
+        "--dir",
+        help="destination dirpath of copy"
+    )
+    copy_parser_mg.add_argument(
+        "-p",
+        "--pre",
+        help="command to execute before the copy"
     )
 
     # list
