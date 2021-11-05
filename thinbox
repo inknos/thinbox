@@ -176,8 +176,6 @@ class Thinbox(object):
     """
     def __init__(self):
         super().__init__()
-        self._url = ""
-        #self._os  = _detect_os_from_url(self.url)
         self._all_machines = self._get_all_machines()
         self._all_running_machines = self._get_all_running_machines()
         self._all_stopped_machines = self._get_all_stopped_machines()
@@ -201,18 +199,8 @@ class Thinbox(object):
         return self._all_paused_machines
 
     @property
-    def  all_other_machines(self):
+    def all_other_machines(self):
         return self._all_other_machines
-
-
-    @property
-    def url(self):
-        return self._url
-
-    @url.setter
-    def url(self, val):
-        # check if url is valid
-        self._url = val
 
     def _detect_os_from_url(self, url):
         return None
