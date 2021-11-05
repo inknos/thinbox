@@ -363,14 +363,10 @@ class Thinbox(object):
     def image_list(self):
         """Print a list of base images on the system
         """
-        image_list = []
-        for root, dirs, files in os.walk(THINBOX_BASE_DIR):
-            for file in files:
-                image_list.append(file)
         print(THINBOX_BASE_DIR)
         print()
         print("{:<50} {:<20}".format("IMAGE", "HASH"))
-        for name in image_list:
+        for name in self.base_images:
             print("{:<50} ".format(name), end="")
             none = True
             hashes = []
