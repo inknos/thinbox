@@ -12,6 +12,6 @@ setup(
     author_email='nsella@redhat.com',
     url='https://github.com/inknos/thinbox_py',
     scripts=[
-        "thinbox",
+        "thinbox.py",
     ],
 )
