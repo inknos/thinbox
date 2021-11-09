@@ -213,7 +213,21 @@ class Thinbox(object):
         self._base_dir = THINBOX_BASE_DIR
         self._image_dir = THINBOX_IMAGE_DIR
         self._hash_dir = THINBOX_HASH_DIR
+        self._create_cache_dirs()
         self._base_images = self._get_base_images()
+
+    def _create_cache_dirs(self):
+        self._create_dir("Base cache", self.base_dir)
+        self._create_dir("Image cache", self.image_dir)
+        self._create_dir("Hash cache", self.hash_dir)
+
+    def _create_dir(self, dirname, dirpath):
+        if os.path.exists(dirpath) and not os.path.isdir(dirpath):
+            logging.error("{} dir {} exists and it's not a directory.".format(dirname, dirpath))
+            sys.exit(1)
+        elif not os.path.exists(dirpath):
+            os.mkdir(dirpath)
+            logging.debug("{} dir not existing. Created on {}.".format(dirname, dirpath))
 
     @property
     def all_machines(self):
