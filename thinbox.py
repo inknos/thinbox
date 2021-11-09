@@ -3,6 +3,7 @@
 
 import argparse
 import hashlib
+import libvirt
 import logging
 import os
 import re
@@ -158,6 +159,107 @@ def is_virt_enabled():
     env["LC_LANG"] = "C"
     out = subprocess.run(["lscpu"], env=env, stdout=subprocess.PIPE)
     return "VT-x" in str(out.stdout)
+
+
+class Domain(object):
+    def __init__(self, domain):
+        super.__init__()
+        self._dom    = domain
+        self._name   = domain.name()
+        self._id     = domain.ID()
+        self._active = domain.isActive()
+        self._uuid   = domain.UUIDString()
+
+        self._addr   = {}
+        self._ip = ""
+        self._mac = ""
+
+        @property
+        def name(self):
+            return self._name
+
+        @property
+        def id(self):
+            return self._id
+
+        @property
+        def active(self):
+            return self._active
+
+        @property
+        def uuid(self):
+            return self._uuid
+
+        @property
+        def ip(self):
+            if self._ip == "":
+                self._set_ip_from_addr()
+            return self._ip
+
+        @property
+        def mac(self):
+            if self._mac == "":
+                self._set_mac_from_addr()
+            return self._mac
+
+        def _set_addr(self):
+            """Sets new addr if empty
+            """
+            if self._addr == {}:
+                self._addr = self._dom.interfaceAddresses(
+                    libvirt.VIR_DOMAIN_INTERFACE_ADDRESSES_SRC_ARP
+                )
+
+        def _set_ip_from_addr(self):
+            self._set_addr()
+            if self._addr == {}:
+                self._ip = ""
+                return
+            self._ip = self._addr['tap0']['addrs'][0]['addr']
+
+        def _set_mac_from_addr(self):
+            self._set_addr()
+            if self._addr == {}:
+                self._mac = ""
+                return
+            self._mac = self._addr['tap0']['hwaddr']
+
+
+class LibVirtConnection(object):
+    def __init__(self, readonly=True):
+        super().__init__()
+        self._conn = self._get_connection(readonly)
+        self._doms = self._get_all_domains()
+
+    @property
+    def conn(self):
+        return self._conn
+
+    @property
+    def doms(self):
+        return self._doms
+
+    def _get_connection(self, readonly):
+        try:
+            if readonly:
+                conn = libvirt.openReadOnly(None)
+            else:
+                conn = libvirt.open()
+        except libvirt.libvirtError as e:
+            logging.error("libvirt: {}".format(e))
+            sys.exit(1)
+        return conn
+
+    def _get_domain(self, name):
+        try:
+            dom = self.conn.lookupByName(name)
+        except libvirt.libvirtError as e:
+            logging.error("libvirt: {}").format(e)
+            sys.exit(1)
+        return dom
+
+    def _get_all_domains(self):
+        return [ Domain(d) for d in conn.listAllDomains() ]
 
 
 class Thinbox(object):
