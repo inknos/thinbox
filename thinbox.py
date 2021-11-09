@@ -8,6 +8,7 @@ import os
 import re
 import requests
 import shutil
+import socket
 import subprocess
 import sys
 
@@ -139,33 +140,17 @@ def _url_is_valid(url):
     return re.match(regex, url) is not None
 
 
-def _ping_url(url):
-    """Ping a url to see if site is available
-
-    Example from:
-    https://stackoverflow.com/questions/316866/ping-a-site-in-python
-
-    Parameters
-    ----------
-    url : str
-        The url to ping
-
-    Returns
-    -------
-    bool
-        True if the ping has 0% packet loss
-    """
-    ping_response = subprocess.Popen(
-        ["ping", "-c3", url],
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE)
-    ping_stdout.stdout.read()
-    ping_stderr.stderr.read()
-    if ping_stderr != b'':
-        logging.error("Ping error: {}".format(ping_stderr.decode('utf8')))
-        sys.exit(1)
-    result = ping_stdout.decode('utf-8')
-    return "0% packet loss" in result
+def _ping_server(server: str, port=443, timeout=3):
+    """ping server"""
+    try:
+        socket.setdefaulttimeout(timeout)
+        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        s.connect((server, port))
+    except OSError as error:
+        return False
+    else:
+        s.close()
+        return True
 
 
 def is_virt_enabled():
