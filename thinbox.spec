@@ -1,7 +1,6 @@
 %define debug_package %{nil}
 %define name thinbox
-%define version 0.1.0
-%define unmangled_version 0.1.0
+%define version 0.2.0
 %define release 1
 
 Name:           %{name}
@@ -47,6 +46,10 @@ python3 setup.py install --single-version-externally-managed -O1 --root=$RPM_BUI
 
 
 %changelog
+* Wed Nov 10 2021 Nicola Sella <nsella@redhat.com> - 0.2.0-1
+- Rewrite using python3-libvirt
+- Split files for better scalability
+
 * Fri Nov 05 2021 Nicola Sella <nsella@redhat.com> - 0.1.0-1
 - Fix broken dependency
 
