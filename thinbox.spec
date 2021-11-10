@@ -13,6 +13,7 @@ License:        GPLv3
 URL:            https://github.com/inknos/thinbox
 Source0:        %{url}/archive/refs/tags/v%{version}.tar.gz
 
+Requires:       guestfs-tools
 Requires:       python3
 Requires:       python3-argcomplete
 Requires:       python3-beautifulsoup4
