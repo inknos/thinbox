@@ -189,14 +189,14 @@ def get_parser():
         help="run command into specified VM"
     )
     run_parser.add_argument(
+        "cmd",
+        help="command to run"
+    )
+    run_parser.add_argument(
         "name",
         choices=[d.name for d in tb.doms],
         metavar="VM_NAME",
         help="name of VM"
-    )
-    run_parser.add_argument(
-        "cmd",
-        help="command to run"
     )
     # list
     list_parser = subparsers.add_parser(
