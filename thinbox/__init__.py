@@ -109,6 +109,7 @@ def get_parser():
     pull_tag_parser_gr = pull_tag_parser.add_argument_group()
     pull_tag_parser_gr.add_argument(
         "name",
+        metavar="TAG",
         choices=list(RHEL_TAGS),
         help="TAG to download"
     )
@@ -147,6 +148,7 @@ def get_parser():
         required=True)
     create_parser_mg.add_argument(
         "-i", "--image",
+        metavar="IMG_NAME",
         choices=tb.base_images,
         help="Name of image already downloaded"
     )
@@ -352,8 +354,9 @@ def get_parser():
     )
     enter_parser.add_argument(
         "name",
-        help="name of the VM to enter",
-        choices=[ d.name for d in tb.doms ]
+        metavar="VM_NAME",
+        choices=[ d.name for d in tb.doms ],
+        help="name of the VM to enter"
     )
     # start
     start_parser = subparsers.add_parser(
@@ -362,6 +365,7 @@ def get_parser():
     )
     start_parser.add_argument(
         "name",
+        metavar="VM_NAME",
         choices=[ d.name for d in tb.doms ],
         help="name of the VM to start"
     )
@@ -372,6 +376,7 @@ def get_parser():
     )
     stop_parser.add_argument(
         "name",
+        metavar="VM_NAME",
         choices=[ d.name for d in tb.doms ],
         help="name of the VM to stop"
     )
