@@ -2,29 +2,37 @@ import libvirt
 
 
 class Domain(object):
-    """
-    Class made to represent a libvirt domain
+    """Class made to represent a libvirt domain
 
-    Parameters
-    ----------
+    :param name:
+    :type name: str
 
-    name : str
-    id : int
-    active : int
-    uuid : str
-    ip : str
-    mac : str
-    state : str
-    reason : str
+    : param id:
+    :type id: int
 
-    Methods
-    -------
+    :param active:
+    :type active: int
 
-    shutdown
-    start
+    :param uuid:
+    :type uuid: str
+
+    :param ip:
+    :type ip: str
+
+    :param mac:
+    :type mac: str
+
+    :param state:
+    :type state: str
+
+    :param reason:
+    :type reason: str
+
     """
 
     def __init__(self, domain):
+        """Constructor, takes a libvirt.domain as parameter
+        """
         super().__init__()
         self._dom = domain
         self._name = domain.name()
@@ -40,14 +48,27 @@ class Domain(object):
         self._mac = ""
 
     @property
+    """Returns domain's name
+
+    :rtype: str
+    """
     def name(self):
         return self._name
 
     @property
+    """Returns domain's ID
+
+    :rtype: int
+    """
     def id(self):
         return self._id
 
     @property
+    """Returns if domain is active
+
+    :return: `1` if active, `0` otherwise 
+    :rtype: int
+    """
     def active(self):
         return self._active
 
