@@ -1,8 +1,12 @@
 %define debug_package %{nil}
+%define name thinbox
+%define version 0.1.0
+%define unmangled_version 0.1.0
+%define release 1
 
-Name:           thinbox
-Version:        0.1.1
-Release:        1%{?dist}
+Name:           %{name}
+Version:        %{version}
+Release:        %{release}%{?dist}
 Summary:        Thinbox is a tool to create and manage virtual machines
 
 License:        GPLv3
@@ -23,18 +27,18 @@ Requires:       libvirt-client
 %prep
 %autosetup
 
-
 %build
-
+python3 setup.py build
 
 %install
-rm -rf $RPM_BUILD_ROOT
-install -Dpm 0755 %{name}.py %{buildroot}%{_bindir}/%{name}
+python3 setup.py install --single-version-externally-managed -O1 --root=$RPM_BUILD_ROOT --record=INSTALLED_FILES
 
 
-%files
+
+%files -f INSTALLED_FILES
 %{_bindir}/%{name}
 %license LICENSE
+%defattr(-,root,root)
 
 
 %changelog
