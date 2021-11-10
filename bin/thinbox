@@ -1,0 +1,4 @@
+#!/bin/python
+
+import thinbox
+thinbox.main()
