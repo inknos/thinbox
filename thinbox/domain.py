@@ -1,5 +1,6 @@
 import libvirt
 
+
 class Domain(object):
     """
     Class made to represent a libvirt domain
@@ -22,18 +23,19 @@ class Domain(object):
     shutdown
     start
     """
+
     def __init__(self, domain):
         super().__init__()
-        self._dom    = domain
-        self._name   = domain.name()
-        self._id     = domain.ID()
+        self._dom = domain
+        self._name = domain.name()
+        self._id = domain.ID()
         self._active = domain.isActive()
-        self._uuid   = domain.UUIDString()
+        self._uuid = domain.UUIDString()
 
         # need to be updated more than once
         self._state = ""
-        self._reason= ""
-        self._addr   = {}
+        self._reason = ""
+        self._addr = {}
         self._ip = ""
         self._mac = ""
 
@@ -168,5 +170,4 @@ class LibVirtConnection(object):
         return dom
 
     def _get_all_domains(self):
-        return [ Domain(d) for d in self.conn.listAllDomains() ]
-
+        return [Domain(d) for d in self.conn.listAllDomains()]

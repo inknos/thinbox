@@ -2,6 +2,7 @@ from thinbox import domain
 from thinbox.utils import *
 from thinbox.config import *
 
+
 class Thinbox(object):
     """
     A class made to represent a Thinbox run
@@ -62,11 +63,13 @@ class Thinbox(object):
 
     def _create_dir(self, dirname, dirpath):
         if os.path.exists(dirpath) and not os.path.isdir(dirpath):
-            logging.error("{} dir {} exists and it's not a directory.".format(dirname, dirpath))
+            logging.error(
+                "{} dir {} exists and it's not a directory.".format(dirname, dirpath))
             sys.exit(1)
         elif not os.path.exists(dirpath):
             os.mkdir(dirpath)
-            logging.debug("{} dir not existing. Created on {}.".format(dirname, dirpath))
+            logging.debug(
+                "{} dir not existing. Created on {}.".format(dirname, dirpath))
 
     @property
     def doms(self):
@@ -119,7 +122,6 @@ class Thinbox(object):
         """
         return self._hash_dir
 
-
     def stop(self, name, opt=None):
         """Stop running domain
 
@@ -137,7 +139,7 @@ class Thinbox(object):
             print("Domain '{}' already stopped.".format(dom.name))
             return
         # TODO mode acpi
-        #if opt == "--mode=acpi":
+        # if opt == "--mode=acpi":
         #    dom.shutdown()
         dom.shutdown()
         print("Domain '{}' is being shutdown.".format(dom.name))
@@ -286,7 +288,7 @@ class Thinbox(object):
         """
         # domain exist?
         # TODO domain exist
-        #if not _domain_exists(name):
+        # if not _domain_exists(name):
         #    logging.error(
         #        "Domain with name '{}' does not exist.".format(name))
         #    sys.exit(1)
@@ -336,7 +338,7 @@ class Thinbox(object):
         if fil == "":
             domains = self.doms
         else:
-            domains = [ d for d in filter(state_filter, self.doms) ]
+            domains = [d for d in filter(state_filter, self.doms)]
 
         if len(domains) == 0:
             print("To create a domain run: thinbox create -i <image> <name>")
@@ -423,12 +425,13 @@ class Thinbox(object):
         _logging_subprocess(p_virt_install, "virt-install: {}")
 
     def _get_dom_from_name(self, name):
-        domains = [ d for d in self.doms if d.name == name ]
+        domains = [d for d in self.doms if d.name == name]
         if domains == []:
             print("Domain '{}' does not exist".format(name))
             sys.exit(1)
         elif len(domains) > 1:
-            logging.error("Found more than one domain with name '{}'".format(name))
+            logging.error(
+                "Found more than one domain with name '{}'".format(name))
         return domains[0]
 
     def _wait_for_boot(self, dom):
@@ -567,5 +570,3 @@ class Thinbox(object):
             sys.exit(1)
 
         return result
-
-

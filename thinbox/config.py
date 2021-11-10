@@ -84,5 +84,3 @@ RHEL_IMAGE_DOMAIN = {
 RHEL_TAGS = {
     "rhel8-latest"
 }
-
-

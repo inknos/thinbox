@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # PYTHON_ARGCOMPLETE_OK
-import argcomplete, argparse
+import argcomplete
+import argparse
 import logging
 
 import thinbox.thinbox as thb

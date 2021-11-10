@@ -12,6 +12,8 @@ from urllib.parse import urlparse
 from time import sleep
 
 from thinbox.config import THINBOX_SSH_OPTIONS
+
+
 def _url_is_valid(url):
     """Validate a url format based on Django validator
 
@@ -61,7 +63,6 @@ def is_virt_enabled():
     return "VT-x" in str(out.stdout)
 
 
-
 def _run_ssh_command(session, cmd):
     print("Command", cmd)
 
@@ -75,7 +76,6 @@ def _run_ssh_command(session, cmd):
         logging.warning("paramiko error: {}".format(exit_code))
         for line in ssh_stderr:
             logging.warning("paramiko stderr: {}".format(line.strip()))
-
 
 
 def _image_name_wrong(name):
@@ -145,5 +145,3 @@ def _download_file(url, filepath):
                 sys.stdout.flush()
     sys.stdout.write('\n')
     return True
-
-

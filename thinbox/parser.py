@@ -361,7 +361,7 @@ def get_parser():
     enter_parser.add_argument(
         "name",
         metavar="VM_NAME",
-        choices=[ d.name for d in tb.doms ],
+        choices=[d.name for d in tb.doms],
         help="name of the VM to enter"
     )
     # start
@@ -372,7 +372,7 @@ def get_parser():
     start_parser.add_argument(
         "name",
         metavar="VM_NAME",
-        choices=[ d.name for d in tb.doms ],
+        choices=[d.name for d in tb.doms],
         help="name of the VM to start"
     )
     # stop
@@ -383,7 +383,7 @@ def get_parser():
     stop_parser.add_argument(
         "name",
         metavar="VM_NAME",
-        choices=[ d.name for d in tb.doms ],
+        choices=[d.name for d in tb.doms],
         help="name of the VM to stop"
     )
     stop_parser_mg = stop_parser.add_mutually_exclusive_group(required=False)
@@ -393,5 +393,3 @@ def get_parser():
     )
 
     return parser
-
-
