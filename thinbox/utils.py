@@ -82,7 +82,7 @@ def _image_name_wrong(name):
     return name.endswith(".qcow2")
 
 
-def _logging_subprocess(process, output):
+def logging_subprocess(process, output):
     for so in process.stdout.read().decode('utf8').split('\n'):
         if so == '':
             continue

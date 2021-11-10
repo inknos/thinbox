@@ -172,20 +172,11 @@ class Thinbox(object):
             Name of domain to remove
         """
         dom = self._get_dom_from_name(name)
-
-        # stop the domain
-        p_destroy = subprocess.Popen(
-            ['virsh', 'destroy', name],
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE
-        )
-        _logging_subprocess(p_destroy, "virsh destroy: {}")
-        p_undefine = subprocess.Popen(
-            ['virsh', 'undefine', name],
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE
-        )
-        _logging_subprocess(p_undefine, "virsh undefine: {}")
+        if dom.active == 1:
+            if dom.destroy() == 0:
+                logging.debug("Domain {} destroyed".format(dom.name))
+        if dom.undefine() == 0:
+            logging.debug("Domain {} undefined".format(dom.name))
 
         # check if file exists
         filepath = os.path.join(self.image_dir, name + ".qcow2")
@@ -358,10 +349,7 @@ class Thinbox(object):
         print("Connecting to domain '{}' as root@{}".format(dom.name, dom.ip))
         ssh_connect(dom)
 
-    def create(self):
-        print("create")
-
-    def create_from_image(self, base_name, name):
+    def create(self, base_name, name):
 
         if not os.path.exists(self.image_dir):
             os.makedirs(self.image_dir)
@@ -375,11 +363,9 @@ class Thinbox(object):
             print("To list the available images run: thinbox image")
             sys.exit(1)
 
-        # ensure_domain_undefined $name
-
-        # if _domain_exists(name):
-        #    logging.error("Domain with name '{}' exists.".format(name))
-        #    sys.exit(1)
+        if name in [d.name for d in self.doms]:
+            logging.error("Domain with name '{}' exists.".format(name))
+            sys.exit(1)
 
         p_qemu = subprocess.Popen([
             'qemu-img', 'create',
@@ -388,7 +374,7 @@ class Thinbox(object):
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE
         )
-        _logging_subprocess(p_qemu, "qemu: {}")
+        logging_subprocess(p_qemu, "qemu: {}")
 
         p_virt_sysprep = subprocess.Popen([
             'virt-sysprep', '-a', image,
@@ -397,7 +383,7 @@ class Thinbox(object):
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE
         )
-        _logging_subprocess(p_virt_sysprep, "virt-sysprep: {}")
+        logging_subprocess(p_virt_sysprep, "virt-sysprep: {}")
 
         p_virt_install = subprocess.Popen([
             'virt-install', '--network=bridge:virbr0',
@@ -410,7 +396,7 @@ class Thinbox(object):
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE
         )
-        _logging_subprocess(p_virt_install, "virt-install: {}")
+        logging_subprocess(p_virt_install, "virt-install: {}")
 
     def _get_dom_from_name(self, name):
         domains = [d for d in self.doms if d.name == name]

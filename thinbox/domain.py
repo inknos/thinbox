@@ -78,10 +78,16 @@ class Domain(object):
         return self._reason
 
     def shutdown(self):
-        self._dom.shutdown()
+        return self._dom.shutdown()
 
     def start(self):
-        self._dom.create()
+        return self._dom.create()
+
+    def destroy(self):
+        return self._dom.destroy()
+
+    def undefine(self):
+        return self._dom.undefine()
 
     def _set_state_reason(self):
         state, reason = self._dom.state()

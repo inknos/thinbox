@@ -46,8 +46,7 @@ def main():
             tb.image_list()
     elif args.command == "create":
         tb = thb.Thinbox(readonly=False)
-        if args.image:
-            tb.create_from_image(args.image, args.name)
+        tb.create(args.image, args.name)
     elif args.command == "copy":
         tb = thb.Thinbox()
         tb.copy(args.file, args.name)

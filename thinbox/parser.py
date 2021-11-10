@@ -25,11 +25,7 @@ class Formatter(argparse.HelpFormatter):
 def get_parser():
     """
     Returns a parser with this structure
-    thinbox create
-               |
-               +-- -i/--image <image> <vm_name> [autocomplete]
-               x-- -t/--tag   <image> <vm_name>
-               x-- -u/--url   <url>   <vm_name>
+    thinbox create <image> <vm_name> [autocomplete]
 
     thinbox pull
              |
@@ -145,28 +141,14 @@ def get_parser():
         help="create VM from base image",
     )
     create_parser.add_argument(
-        "name",
-        help="name of the VM"
-    )
-    create_parser_mg = create_parser.add_mutually_exclusive_group(
-        required=True)
-    create_parser_mg.add_argument(
-        "-i", "--image",
+        "image",
         metavar="IMG_NAME",
         choices=tb.base_images,
         help="Name of image already downloaded"
     )
-    create_parser_mg.add_argument(
-        "-p", "--path",
-        help="Path of image you want to create a vm from"
-    )
-    create_parser_mg.add_argument(
-        "-t", "--tag",
-        help="TAG of the image you want to pull"
-    )
-    create_parser_mg.add_argument(
-        "-u", "--url",
-        help="URL of the image you want to pull"
+    create_parser.add_argument(
+        "name",
+        help="name of the VM"
     )
     # copy
     copy_parser = subparsers.add_parser(
@@ -181,6 +163,8 @@ def get_parser():
     )
     copy_parser.add_argument(
         "name",
+        metavar="VM_NAME",
+        choices=[d.name for d in tb.doms],
         help="name of the VM"
     )
     # run
