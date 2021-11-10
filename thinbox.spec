@@ -14,6 +14,7 @@ URL:            https://github.com/inknos/thinbox
 Source0:        %{url}/archive/refs/tags/v%{version}.tar.gz
 
 BuildRequires:  python3
+BuildRequires:  python3-setuptools
 
 Requires:       guestfs-tools
 Requires:       python3
