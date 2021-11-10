@@ -32,7 +32,7 @@ Requires:       libvirt-client
 python3 setup.py build
 
 %install
-python3 setup.py install --single-version-externally-managed -O1 --root=$RPM_BUILD_ROOT --record=INSTALLED_FILES
+python setup.py install --single-version-externally-managed -O1 --root=$RPM_BUILD_ROOT --record=INSTALLED_FILES
 
 
 
