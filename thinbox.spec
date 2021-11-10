@@ -13,6 +13,8 @@ License:        GPLv3
 URL:            https://github.com/inknos/thinbox
 Source0:        %{url}/archive/refs/tags/v%{version}.tar.gz
 
+BuildRequires:  python3
+
 Requires:       guestfs-tools
 Requires:       python3
 Requires:       python3-argcomplete
@@ -30,10 +32,10 @@ Requires:       libvirt-client
 %autosetup
 
 %build
-python setup.py build
+python3 setup.py build
 
 %install
-python setup.py install --single-version-externally-managed -O1 --root=$RPM_BUILD_ROOT --record=INSTALLED_FILES
+python3 setup.py install --single-version-externally-managed -O1 --root=$RPM_BUILD_ROOT --record=INSTALLED_FILES
 
 
 
