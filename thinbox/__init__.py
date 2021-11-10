@@ -50,7 +50,10 @@ def main():
             tb.create_from_image(args.image, args.name)
     elif args.command == "copy":
         tb = thb.Thinbox()
-        tb.copy(args.file, args.name, args.dir, args.pre, args.comm)
+        tb.copy(args.file, args.name)
+    elif args.command == "run":
+        tb = thb.Thinbox()
+        tb.run(args.cmd, args.name)
     elif args.command == "enter":
         tb = thb.Thinbox(readonly=False)
         tb.enter(args.name)

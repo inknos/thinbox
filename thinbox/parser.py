@@ -46,11 +46,9 @@ def get_parser():
                         |
                         +-- -a
 
-    thinbox copy <files> <vm_name>
-             |
-             +-- -c/--command   <command to exec before>
-             +-- -d/--dir       <destination dir>
-             +-- -p/--pre       <command to exec after>
+    thinbox copy <files> <vm_name>:[<path>]
+
+    thinbox run <vm_name> <command>
 
     thinbox
         |
@@ -185,23 +183,21 @@ def get_parser():
         "name",
         help="name of the VM"
     )
-    copy_parser_mg = copy_parser.add_argument_group()
-    copy_parser_mg.add_argument(
-        "-c",
-        "--comm",
-        help="command to execute after the copy"
+    # run
+    run_parser = subparsers.add_parser(
+        "run",
+        help="run command into specified VM"
     )
-    copy_parser_mg.add_argument(
-        "-d",
-        "--dir",
-        help="destination dirpath of copy"
+    run_parser.add_argument(
+        "name",
+        choices=[d.name for d in tb.doms],
+        metavar="VM_NAME",
+        help="name of VM"
     )
-    copy_parser_mg.add_argument(
-        "-p",
-        "--pre",
-        help="command to execute before the copy"
+    run_parser.add_argument(
+        "cmd",
+        help="command to run"
     )
-
     # list
     list_parser = subparsers.add_parser(
         "list",

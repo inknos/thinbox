@@ -201,6 +201,15 @@ class Thinbox(object):
         for d in domains:
             self.remove(d.name)
 
+    def run(self, command, name):
+        dom = self._get_dom_from_name(name)
+
+        ssh = SSHClient()
+        ssh.load_system_host_keys()
+        ssh.connect(hostname=dom.ip, username="root")
+
+        run_ssh_command(ssh, command)
+
     def pull_url(self, url, skip=True):
         """Download a qcow2 image file from url
 
@@ -266,7 +275,7 @@ class Thinbox(object):
         for name in self.base_images:
             self.image_remove(name)
 
-    def copy(self, files, name, directory="/root", pre="", command=""):
+    def copy(self, files, name):
         """Copy file or files into a running domain
 
         Parameters
@@ -277,49 +286,28 @@ class Thinbox(object):
         name : str
             Name of domain to copy file/files in
 
-        command :  str, optional
-            Command to run inside the domain after files are copied
-
-        directory : str, optional
-            Destination directory for files to be copied in. (default is "/root")
-
-        pre : str, optional
-            Command to run inside the domain before the files are copied
         """
-        # domain exist?
-        # TODO domain exist
-        # if not _domain_exists(name):
-        #    logging.error(
-        #        "Domain with name '{}' does not exist.".format(name))
-        #    sys.exit(1)
         # TODO
         # is domain running?
         # do you want to start it?
         # get ip
-        ip = _get_ip(name)
+        if ":" in name:
+            vmname, destination = name.split(":")
+        else:
+            vmname = name
+            destination = "/root"
+
+        dom = self._get_dom_from_name(vmname)
 
         ssh = SSHClient()
         ssh.load_system_host_keys()
-        ssh.connect(hostname=ip, username="root")
+        ssh.connect(hostname=dom.ip, username="root")
 
-        # run command
-        if pre:
-            _run_ssh_command(ssh, pre)
-
-        # copy file
-        if directory:
-            destination = directory
-        else:
-            destination = "/root"
         with SCPClient(ssh.get_transport()) as scp:
             for file in files:
                 dest = os.path.join(destination, os.path.basename(file))
                 scp.put(file, dest)
                 print("Copied file {} into {}.".format(file, dest))
-
-        # run post
-        if command:
-            _run_ssh_command(ssh, command)
 
     def list(self, fil=""):
         """List domains

@@ -63,7 +63,7 @@ def is_virt_enabled():
     return "VT-x" in str(out.stdout)
 
 
-def _run_ssh_command(session, cmd):
+def run_ssh_command(session, cmd):
     print("Command", cmd)
 
     ssh_stdin, ssh_stdout, ssh_stderr = session.exec_command(cmd)
