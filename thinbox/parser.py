@@ -28,48 +28,49 @@ def get_parser():
     thinbox create <image> <vm_name> [autocomplete]
 
     thinbox pull
-             |
-             +-- tag <tag> [autocomplete]
-             |    |
-             +-- url <url>
-                  |
-                  +-- --skip-check
+    |
+    +-- tag <tag> [autocomplete]
+    |   |
+    +-- url <url>
+        |
+        +-- --skip-check
 
     thinbox image
-              |
-              +-- list/ls
-              +-- remove/rm <image> [autocomplete]
-                        |
-                        +-- -a
+        |
+        +-- list/ls
+        +-- remove/rm <image> [autocomplete]
+            |
+            +-- -a
 
     thinbox copy <files> <vm_name>:[<path>]
 
-    thinbox run <vm_name> <command>
+    thinbox run <command> <vm_name>
 
     thinbox
         |
-        +-- list/ls -----------------|
-        |       |                    |
-        |       +-- -a/--all         |
-        |       +-- -o/--other       |
-        |       +-- -p/--paused      |
-        |       +-- -r/--running     |
-        |       +-- -s/--stopped     |
-        +-- remove/rm <vm_name> --------| [autocomplete]
-                  |                  |  |
-                  +-- -a ------------------|
-                                     |  |  |
-    thinbox vm                       |  |  |
-           |                         |  |  |
-           +-- list/ls --------------|  |  |
-           |    +-- -a/--all            |  |
-           |    +-- -o/--other          |  |
-           |    +-- -p/--paused         |  |
-           |    +-- -r/--running        |  |
-           |    +-- -s/--stopped        |  |
-           +-- remove/rm <vm_name> -----|  | [autocomplete]
-                     |                     |
-                     +-- -a ---------------|
+        +-- list/ls -------------|
+        |   |                    |
+        |   +-- -a/--all         |
+        |   +-- -o/--other       |
+        |   +-- -p/--paused      |
+        |   +-- -r/--running     |
+        |   +-- -s/--stopped     |
+        +-- remove/rm <vm_name> ----| [autocomplete]
+            |                    |  |
+            +-- -a --------------------|
+                                 |  |  |
+    thinbox vm                   |  |  |
+        |                        |  |  |
+        +-- list/ls -------------|  |  |
+        |   |                       |  |
+        |   +-- -a/--all            |  |
+        |   +-- -o/--other          |  |
+        |   +-- -p/--paused         |  |
+        |   +-- -r/--running        |  |
+        |   +-- -s/--stopped        |  |
+        +-- remove/rm <vm_name> ----|  | [autocomplete]
+            |                          |
+            +-- -a --------------------|
 
     thinbox enter <vm_name> [autocomplete]
     thinbox start <vm_name> [autocomplete]
