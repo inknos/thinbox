@@ -153,3 +153,33 @@ def download_file(url, filepath):
                 sys.stdout.flush()
     sys.stdout.write('\n')
     return True
+
+def printd(text, delay=.5):
+    print(end=text)
+    n_dots = 0
+
+    while True:
+        if n_dots == 3:
+            print(end='\b\b\b', flush=True)
+            print(end='   ',    flush=True)
+            print(end='\b\b\b', flush=True)
+            n_dots = 0
+        else:
+            print(end='.', flush=True)
+            n_dots += 1
+        sleep(delay)
+
+def os_variant(image):
+    if "rhel" in image:
+        if "8.6" in image:
+            return "none"
+        elif "8.5" in image:
+            return "rhel8.5"
+    elif "fedora" in image or "Fedora" in image:
+        if "34" in image:
+            return "fedora34"
+        elif "35" in image:
+            return "feora35"
+    else:
+        return "none"
+

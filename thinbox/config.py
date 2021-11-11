@@ -71,15 +71,11 @@ PATHS = {
     "PYTHONPATH": [PATHS_ENV["PYTHON3_SITEARCH"], PATHS_ENV["PYTHON3_SITELIB"]],
 }
 
-RHEL_IMAGE_URL = os.environ.get("RHEL_IMAGE_URL", None)
-RHEL_IMAGE_HASH = {
+RHEL_BASE_URL = os.environ.get("RHEL_IMAGE_URL", None)
+RHEL_BASE_HASH = {
     "MD5SUM",
     "SHA1SUM",
     "SHA256SUM"
-}
-RHEL_IMAGE_DOMAIN = {
-    "download-node-02.eng.bos.redhat.com",
-    "redhat.com"
 }
 RHEL_TAGS = {
     "rhel8-latest"

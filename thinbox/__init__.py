@@ -223,9 +223,9 @@ class Thinbox(object):
             print("Tag '{}' is not a known tag")
             sys.exit(1)
 
-        if not RHEL_IMAGE_URL:
+        if not RHEL_BASE_URL:
             logging.warning(
-                "Variable RHEL_IMAGE_URL. If you know where to pull images please export this variable locally.")
+                "Variable RHEL_BASE_URL. If you know where to pull images please export this variable locally.")
             sys.exit(1)
         url = self._generate_url_from_tag(tag)
         self.pull_url(url)
@@ -240,7 +240,7 @@ class Thinbox(object):
             print("{:<50} ".format(name), end="")
             none = True
             hashes = []
-            for hashfunc in sorted(RHEL_IMAGE_HASH):
+            for hashfunc in sorted(RHEL_BASE_HASH):
                 if os.path.exists(os.path.join(self.hash_dir, name + "." + hashfunc + ".OK")):
                     hashes.append(hashfunc)
                     none = False
@@ -412,6 +412,8 @@ class Thinbox(object):
             logging.error("Domain with name '{}' exists.".format(name))
             sys.exit(1)
 
+
+        print("Creatin qemu image from '{}'".format(base_name))
         p_qemu = subprocess.Popen([
             'qemu-img', 'create',
             '-f', 'qcow2', '-o',
@@ -430,18 +432,21 @@ class Thinbox(object):
         )
         logging_subprocess(p_virt_sysprep, "virt-sysprep: {}")
 
+        osv = os_variant(base_name)
+        print("Detected OS '{}'".format(osv))
         p_virt_install = subprocess.Popen([
             'virt-install', '--network=bridge:virbr0',
             '--name', name, '--memory', THINBOX_MEMORY,
             '--disk', image,
             '--import',
             '--os-type=linux',
-            '--os-variant=none',
+            '--os-variant='+osv,
             '--noautoconsole'],
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE
         )
         logging_subprocess(p_virt_install, "virt-install: {}")
+        print("Domain '{}' created".format(name))
 
     def _get_dom_from_name(self, name):
         domains = [d for d in self.doms if d.name == name]
@@ -454,23 +459,8 @@ class Thinbox(object):
         return domains[0]
 
     def _wait_for_boot(self, dom):
-        def printd(text, delay=.5):
-            print(end=text)
-            n_dots = 0
-
-            while True:
-                if n_dots == 3:
-                    print(end='\b\b\b', flush=True)
-                    print(end='   ',    flush=True)
-                    print(end='\b\b\b', flush=True)
-                    n_dots = 0
-                else:
-                    print(end='.', flush=True)
-                    n_dots += 1
-                sleep(delay)
-
         while dom.ip == "":
-            printd("Domain '{}' is starting".format(dom.name))
+            printd("domain '{}' is starting".format(dom.name))
             sleep(1)
             dom.ip
 
@@ -486,7 +476,7 @@ class Thinbox(object):
         return image_list
 
     def _generate_url_from_tag(self, tag):
-        url = RHEL_IMAGE_URL
+        url = RHEL_BASE_URL
         page = requests.get(url)
         soup = BeautifulSoup(page.content, 'html.parser')
         links = soup.select("a")
@@ -501,9 +491,9 @@ class Thinbox(object):
         download_file(url, filepath)
         # TODO download hash
         # this works for rhel
-        if urlparse(url).netloc in RHEL_IMAGE_DOMAIN:
+        if urlparse(url).netloc in RHEL_BASE_DOMAIN:
             hashpath = os.path.join(self.hash_dir, filename)
-            for ext in RHEL_IMAGE_HASH:
+            for ext in RHEL_BASE_HASH:
                 download_file(url + "." + ext, hashpath + "." + ext)
         if self.check_hash(filename, "sha256"):
             print("Image downloaded, verified, and ready to use")
