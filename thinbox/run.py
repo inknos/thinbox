@@ -4,6 +4,7 @@ import argcomplete
 import argparse
 import logging
 import sys
+import paramiko
 
 import thinbox as thb
 
@@ -22,6 +23,7 @@ def run():
 
     if args.verbose:
         logging.basicConfig(level=logging.DEBUG)
+        paramiko.common.logging.basicConfig(level=paramiko.common.DEBUG)
 
     if not args.command:
         parser.print_help()
