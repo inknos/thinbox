@@ -71,7 +71,7 @@ PATHS = {
     "PYTHONPATH": [PATHS_ENV["PYTHON3_SITEARCH"], PATHS_ENV["PYTHON3_SITELIB"]],
 }
 
-RHEL_BASE_URL = os.environ.get("RHEL_IMAGE_URL", None)
+RHEL_BASE_URL = os.environ.get("RHEL_BASE_URL", None)
 RHEL_BASE_HASH = {
     "MD5SUM",
     "SHA1SUM",

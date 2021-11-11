@@ -2,8 +2,6 @@ import argparse
 
 import thinbox as thb
 
-from thinbox.config import RHEL_TAGS
-
 try:
     import argcomplete
     USE_ARGCOMPLETE = True
@@ -111,7 +109,7 @@ def get_parser():
     pull_tag_parser_gr.add_argument(
         "name",
         metavar="TAG",
-        choices=list(RHEL_TAGS),
+        choices=tb._get_rhel_tags(),
         help="TAG to download"
     )
     pull_tag_parser_gr.add_argument(

@@ -219,10 +219,6 @@ class Thinbox(object):
         tag : str
             Tag of image to download (RHEL only)
         """
-        if tag not in RHEL_TAGS:
-            print("Tag '{}' is not a known tag")
-            sys.exit(1)
-
         if not RHEL_BASE_URL:
             logging.warning(
                 "Variable RHEL_BASE_URL. If you know where to pull images please export this variable locally.")
@@ -475,8 +471,23 @@ class Thinbox(object):
                 image_list.append(file)
         return image_list
 
-    def _generate_url_from_tag(self, tag):
+    def _get_rhel_tags(self):
         url = RHEL_BASE_URL
+        page = requests.get(url)
+        soup = BeautifulSoup(page.content, 'html.parser')
+        tags = []
+        for l in soup.select("a"):
+            if "RHEL" in l.text:
+                tags.append(l.text[:-1])
+        return tags
+
+    def _generate_url_from_tag(self, tag):
+        url = os.path.join(
+                RHEL_BASE_URL,
+                tag,
+                "compose/BaseOS/x86_64/images/"
+        )
+        print(url)
         page = requests.get(url)
         soup = BeautifulSoup(page.content, 'html.parser')
         links = soup.select("a")
@@ -491,10 +502,9 @@ class Thinbox(object):
         download_file(url, filepath)
         # TODO download hash
         # this works for rhel
-        if urlparse(url).netloc in RHEL_BASE_DOMAIN:
-            hashpath = os.path.join(self.hash_dir, filename)
-            for ext in RHEL_BASE_HASH:
-                download_file(url + "." + ext, hashpath + "." + ext)
+        hashpath = os.path.join(self.hash_dir, filename)
+        for ext in RHEL_BASE_HASH:
+            download_file(url + "." + ext, hashpath + "." + ext)
         if self.check_hash(filename, "sha256"):
             print("Image downloaded, verified, and ready to use")
         else:
