@@ -1,6 +1,6 @@
 import argparse
 
-import thinbox.thinbox as thb
+import thinbox as thb
 
 from thinbox.config import RHEL_TAGS
 
