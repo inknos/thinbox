@@ -4,9 +4,9 @@ import requests
 import os
 import subprocess
 import logging
+import paramiko
 
 from bs4 import BeautifulSoup
-from paramiko import SSHClient
 from scp import SCPClient
 from urllib.parse import urlparse
 from time import sleep
@@ -61,6 +61,14 @@ def is_virt_enabled():
     env["LC_LANG"] = "C"
     out = subprocess.run(["lscpu"], env=env, stdout=subprocess.PIPE)
     return "VT-x" in str(out.stdout)
+
+
+def create_ssh_connection(hostname, username="root", port=22):
+    client = paramiko.SSHClient()
+    client.load_system_host_keys()
+    client.set_missing_host_key_policy(paramiko.client.AutoAddPolicy())
+    client.connect(hostname=hostname, username=username, port=port)
+    return client
 
 
 def run_ssh_command(session, cmd):

@@ -197,11 +197,7 @@ class Thinbox(object):
 
     def run(self, command, name):
         dom = self._get_dom_from_name(name)
-
-        ssh = SSHClient()
-        ssh.load_system_host_keys()
-        ssh.connect(hostname=dom.ip, username="root")
-
+        ssh = create_ssh_connection(dom.ip)
         run_ssh_command(ssh, command)
 
     def pull_url(self, url, skip=True):
@@ -324,9 +320,7 @@ class Thinbox(object):
 
             dom = self._get_dom_from_name(host)
 
-            ssh = SSHClient()
-            ssh.load_system_host_keys()
-            ssh.connect(hostname=dom.ip, username="root")
+            ssh = create_ssh_connection(dom.ip)
 
             with SCPClient(ssh.get_transport()) as scp:
                 for file in files:
@@ -343,9 +337,7 @@ class Thinbox(object):
 
             dom = self._get_dom_from_name(host)
 
-            ssh = SSHClient()
-            ssh.load_system_host_keys()
-            ssh.connect(hostname=dom.ip, username="root")
+            ssh = create_ssh_connection(dom.ip)
 
             with SCPClient(ssh.get_transport()) as scp:
                 for path in paths:
