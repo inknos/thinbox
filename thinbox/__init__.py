@@ -49,7 +49,7 @@ def main():
         tb.create(args.image, args.name)
     elif args.command == "copy":
         tb = thb.Thinbox()
-        tb.copy(args.file, args.name)
+        tb.copy(args.file, args.dest)
     elif args.command == "run":
         tb = thb.Thinbox()
         tb.run(args.cmd, args.name)

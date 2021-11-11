@@ -42,7 +42,7 @@ def get_parser():
             |
             +-- -a
 
-    thinbox copy <files> <vm_name>:[<path>]
+    thinbox copy <files> <dest>
 
     thinbox run <command> <vm_name>
 
@@ -163,10 +163,8 @@ def get_parser():
         help="file or files to copy"
     )
     copy_parser.add_argument(
-        "name",
-        metavar="VM_NAME",
-        choices=[d.name for d in tb.doms],
-        help="name of the VM"
+        "dest",
+        help="destination"
     )
     # run
     run_parser = subparsers.add_parser(

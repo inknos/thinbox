@@ -64,7 +64,7 @@ def is_virt_enabled():
 
 
 def run_ssh_command(session, cmd):
-    print("Command", cmd)
+    logging.debug("Command", cmd)
 
     ssh_stdin, ssh_stdout, ssh_stderr = session.exec_command(cmd)
     exit_code = ssh_stdout.channel.recv_exit_status()  # handles async exit error

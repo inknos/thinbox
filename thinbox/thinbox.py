@@ -269,8 +269,38 @@ class Thinbox(object):
         for name in self.base_images:
             self.image_remove(name)
 
+    def _get_host_path_split_last_column(self, file):
+        """
+        split at last ':'
+        host:/path
+        Returns file, path
+        """
+        host = file.split(":/")[0]
+        if file.count(":") == 0:
+            host = file
+
+        if file.count(":") > 1:
+            logging.warning("More than one ':' in '{}', split may be wrong".format(file))
+
+        if host not in [ d.name for d in self.doms ]:
+            logging.error("Domain '{}' not found.".format(host))
+            sys.exit(1)
+
+        if file.count(":") == 0:
+            return host, "/root"
+
+        path = file.removeprefix(host).removeprefix(":")
+        return host, path
+
+
     def copy(self, files, name):
         """Copy file or files into a running domain
+
+        thinbox file test
+        thinbox file test:/path
+        thinbox file1 /path/file2 test:/path
+        thinbox test:/path/file .
+        thinbox test:/path/file test/path/file2 /path
 
         Parameters
         ----------
@@ -285,23 +315,43 @@ class Thinbox(object):
         # is domain running?
         # do you want to start it?
         # get ip
-        if ":" in name:
-            vmname, destination = name.split(":")
+
+        # identify if it's put or pull
+        put = False
+        if name in [d.name for d in self.doms] or name.split(":/")[0] in  [d.name for d in self.doms]:
+            # PUT
+            host, path = self._get_host_path_split_last_column(name)
+
+            dom = self._get_dom_from_name(host)
+
+            ssh = SSHClient()
+            ssh.load_system_host_keys()
+            ssh.connect(hostname=dom.ip, username="root")
+
+            with SCPClient(ssh.get_transport()) as scp:
+                for file in files:
+                    dest = os.path.join(path, os.path.basename(file))
+                    scp.put(file, dest)
+                    print("Copied file '{}' into '{}'.".format(file, dest))
         else:
-            vmname = name
-            destination = "/root"
-
-        dom = self._get_dom_from_name(vmname)
-
-        ssh = SSHClient()
-        ssh.load_system_host_keys()
-        ssh.connect(hostname=dom.ip, username="root")
-
-        with SCPClient(ssh.get_transport()) as scp:
+            hosts = []
+            paths = []
             for file in files:
-                dest = os.path.join(destination, os.path.basename(file))
-                scp.put(file, dest)
-                print("Copied file {} into {}.".format(file, dest))
+                host, path = self._get_host_path_split_last_column(file)
+                hosts.append(host)
+                paths.append(path)
+
+            dom = self._get_dom_from_name(host)
+
+            ssh = SSHClient()
+            ssh.load_system_host_keys()
+            ssh.connect(hostname=dom.ip, username="root")
+
+            with SCPClient(ssh.get_transport()) as scp:
+                for path in paths:
+                    scp.get(path, name)
+                    print("Copied file '{}' into '{}'.".format(path, name))
+
 
     def list(self, fil=""):
         """List domains
