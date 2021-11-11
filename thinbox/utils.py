@@ -105,7 +105,7 @@ def ssh_connect(dom):
     os.system("ssh {} root@{}".format(THINBOX_SSH_OPTIONS, dom.ip))
 
 
-def _download_file(url, filepath):
+def download_file(url, filepath):
     """Download file from url to specific path
 
     Parameters

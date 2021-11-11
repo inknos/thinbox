@@ -48,28 +48,28 @@ class Domain(object):
         self._mac = ""
 
     @property
-    """Returns domain's name
-
-    :rtype: str
-    """
     def name(self):
+        """Returns domain's name
+
+        :rtype: str
+        """
         return self._name
 
     @property
-    """Returns domain's ID
-
-    :rtype: int
-    """
     def id(self):
+        """Returns domain's ID
+
+        :rtype: int
+        """
         return self._id
 
     @property
-    """Returns if domain is active
-
-    :return: `1` if active, `0` otherwise 
-    :rtype: int
-    """
     def active(self):
+        """Returns if domain is active
+
+        :return: `1` if active, `0` otherwise
+        :rtype: int
+        """
         return self._active
 
     @property

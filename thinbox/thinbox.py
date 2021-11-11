@@ -1,3 +1,6 @@
+import hashlib
+import shutil
+
 from thinbox import domain
 from thinbox.utils import *
 from thinbox.config import *
@@ -453,13 +456,13 @@ class Thinbox(object):
         # check dir exist
         if not os.path.exists(CACHE_DIR):
             os.makedirs(CACHE_DIR)
-        _download_file(url, filepath)
+        download_file(url, filepath)
         # TODO download hash
         # this works for rhel
         if urlparse(url).netloc in RHEL_IMAGE_DOMAIN:
             hashpath = os.path.join(self.hash_dir, filename)
             for ext in RHEL_IMAGE_HASH:
-                _download_file(url + "." + ext, hashpath + "." + ext)
+                download_file(url + "." + ext, hashpath + "." + ext)
         if self.check_hash(filename, "sha256"):
             print("Image downloaded, verified, and ready to use")
         else:
