@@ -16,4 +16,11 @@ setup(
     scripts=[
         "bin/thinbox",
     ],
+    install_requires=[
+        "scp",
+        "argcomplete",
+        "beautifulsoup4",
+        "requests",
+        "paramiko",
+    ]
 )
