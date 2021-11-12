@@ -5,6 +5,8 @@
 - [ ] change config and readonly outside of Thinbox constructor
 - [ ] get tags from url
 - [ ] do not crash if variable not set
+- [ ] create cache dir in Env object
+- [ ] create config dir and file from env object
 
 ### Tests
 
