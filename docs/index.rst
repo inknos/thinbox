@@ -8,7 +8,8 @@ Welcome to Thinbox's documentation!
 
 .. toctree::
    :maxdepth: 2
-   :caption: Contents:
+
+   command_ref
 
 
 

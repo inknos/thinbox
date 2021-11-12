@@ -4,28 +4,28 @@ import libvirt
 class Domain(object):
     """Class made to represent a libvirt domain
 
-    :param name:
+    :param name: Domain's name
     :type name: str
 
-    : param id:
+    :param id: Domain's IP
     :type id: int
 
-    :param active:
+    :param active: Domain's active state
     :type active: int
 
-    :param uuid:
+    :param uuid: Domain's UUID
     :type uuid: str
 
-    :param ip:
+    :param ip: Domain's IP
     :type ip: str
 
-    :param mac:
+    :param mac: Domain's MAC
     :type mac: str
 
-    :param state:
+    :param state: Domain's State
     :type state: str
 
-    :param reason:
+    :param reason: Domain's state reason
     :type reason: str
 
     """
@@ -49,7 +49,7 @@ class Domain(object):
 
     @property
     def name(self):
-        """Returns domain's name
+        """Return domain's name
 
         :rtype: str
         """
@@ -57,7 +57,7 @@ class Domain(object):
 
     @property
     def id(self):
-        """Returns domain's ID
+        """Return domain's ID
 
         :rtype: int
         """
@@ -65,7 +65,7 @@ class Domain(object):
 
     @property
     def active(self):
-        """Returns if domain is active
+        """Return if domain is active
 
         :return: `1` if active, `0` otherwise
         :rtype: int
@@ -74,27 +74,49 @@ class Domain(object):
 
     @property
     def uuid(self):
+        """Return domain's UUID
+
+        :rtype: str
+        """
         return self._uuid
 
     @property
     def ip(self):
+        """Return domain's IP
+
+        :return: Empty string if IP not found
+        :rtype: str
+        """
         if self._ip == "":
             self._set_ip_from_addr()
         return self._ip
 
     @property
     def mac(self):
+        """Return domain's MAC
+
+        :return: Empty string if MAC not found
+        :rtype: str
+        """
         if self._mac == "":
             self._set_mac_from_addr()
         return self._mac
 
     @property
     def state(self):
+        """Return domain's state
+
+        :rtype: str
+        """
         self._set_state_reason()
         return self._state
 
     @property
     def reason(self):
+        """Return domain's reason
+
+        :rtype: str
+        """
         self._set_state_reason()
         return self._reason
 

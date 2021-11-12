@@ -28,10 +28,10 @@ thinbox.parser module
    :undoc-members:
    :show-inheritance:
 
-thinbox.thinbox module
-----------------------
+thinbox.run module
+------------------
 
-.. automodule:: thinbox.thinbox
+.. automodule:: thinbox.run
    :members:
    :undoc-members:
    :show-inheritance:
