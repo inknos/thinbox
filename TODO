@@ -1,0 +1,11 @@
+# TODO
+
+### Main
+
+- [ ] change config and readonly outside of Thinbox constructor
+- [ ] get tags from url
+- [ ] do not crash if variable not set
+
+### Tests
+
+- [ ] add any test basically
