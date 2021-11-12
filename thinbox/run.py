@@ -25,19 +25,23 @@ def run():
         logging.basicConfig(level=logging.DEBUG)
         paramiko.common.logging.basicConfig(level=paramiko.common.DEBUG)
 
+    config = None
+    if args.config:
+        config = args.config
+
     if not args.command:
         parser.print_help()
         parser.error("Please specify a command")
 
     # set not read only
     if args.command == "pull":
-        tb = thb.Thinbox()
+        tb = thb.Thinbox(config=config)
         if args.pull_parser == "tag":
             tb.pull_tag(args.name, skip=args.skip_check)
         elif args.pull_parser == "url":
             tb.pull_url(args.name, skip=args.skip_check)
     elif args.command == "image":
-        tb = thb.Thinbox()
+        tb = thb.Thinbox(config=config)
         if args.image_parser in ("list", "ls"):
             tb.image_list()
         elif args.image_parser in ("remove", "rm"):
@@ -48,13 +52,13 @@ def run():
         else:
             tb.image_list()
     elif args.command == "create":
-        tb = thb.Thinbox(readonly=False)
+        tb = thb.Thinbox(config=config, readonly=False)
         tb.create(args.image, args.name)
     elif args.command == "copy":
-        tb = thb.Thinbox()
+        tb = thb.Thinbox(config=config)
         tb.copy(args.file, args.dest)
     elif args.command == "env":
-        tb = thb.Thinbox()
+        tb = thb.Thinbox(config=config)
         if args.val:
             tb.env.set(args.var, args.val)
         elif args.var:
@@ -63,24 +67,24 @@ def run():
             tb.env.print()
 
     elif args.command == "run":
-        tb = thb.Thinbox()
+        tb = thb.Thinbox(config=config)
         tb.run(args.cmd, args.name)
     elif args.command == "enter":
-        tb = thb.Thinbox(readonly=False)
+        tb = thb.Thinbox(config=config, readonly=False)
         tb.enter(args.name)
     elif args.command == "remove":
-        tb = thb.Thinbox(readonly=False)
+        tb = thb.Thinbox(config=config, readonly=False)
         tb.remove(args.name)
     elif args.command == "start":
-        tb = thb.Thinbox(readonly=False)
+        tb = thb.Thinbox(config=config, readonly=False)
         tb.start(args.name)
     elif args.command == "stop":
-        tb = thb.Thinbox(readonly=False)
+        tb = thb.Thinbox(config=config, readonly=False)
         if args.force:
             tb.stop(args.name, "--mode=acpi")
         tb.stop(args.name)
     elif args.command == "list" or args.command == "ls":
-        tb = thb.Thinbox()
+        tb = thb.Thinbox(config=config)
         if args.all:
             tb.list()
         elif args.other:
@@ -94,13 +98,13 @@ def run():
         else:
             tb.list()
     elif args.command == "remove" or args.command == "rm":
-        tb = thb.Thinbox(readonly=False)
+        tb = thb.Thinbox(config=config, readonly=False)
         if args.all:
             tb.remove_all()
         else:
             tb.remove(args.name)
     elif args.command == "vm":
-        tb = thb.Thinbox()
+        tb = thb.Thinbox(config=config)
         if args.vm_parser == "list" or args.vm_parser == "ls":
             if args.all:
                 tb.list()

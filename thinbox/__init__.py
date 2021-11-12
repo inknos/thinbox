@@ -40,9 +40,9 @@ class Thinbox(object):
         Enter domain
     """
 
-    def __init__(self, readonly=True):
+    def __init__(self, readonly=True, config=None):
         super().__init__()
-        self._env = Env()
+        self._env = Env(config=config)
         self._readonly = readonly
         self._doms = self._get_all_domains(readonly)
         self._create_cache_dirs()

@@ -94,6 +94,11 @@ FEDORA_IMAGE_URL = {
     "https://mirror.karneval.cz/pub/linux/fedora/linux//releases/$FEDORA_TAGS/Cloud/x86_64/images/",
 }
 
+IMAGE_TAGS = []
+IMAGE_TAGS.append(list(RHEL_TAGS))
+IMAGE_TAGS.append(list(FEDORA_TAGS))
+IMAGE_TAGS = IMAGE_TAGS.sort()
+
 
 ALLOWED_KEYS = {
 
@@ -104,6 +109,7 @@ ALLOWED_KEYS = {
 
 PRIVATE_KEYS = {
         "RHEL_BASE_URL",
+        "IMAGE_TAGS"
 }
 
 KNOWN_KEYS = ALLOWED_KEYS.union(PRIVATE_KEYS)
@@ -113,7 +119,10 @@ class Env(dict):
         super().__init__()
         # make file optional
         # if file not found write file
-        self._thinbox_config_file = THINBOX_CONFIG_FILE
+        if config:
+            self._thinbox_config_file = config
+        else:
+            self._thinbox_config_file = THINBOX_CONFIG_FILE
 
         self.load()
 
@@ -177,6 +186,10 @@ class Env(dict):
     def RHEL_BASE_URL(self):
         return self.__dict__['RHEL_BASE_URL']
 
+    @property
+    def IMAGE_TAGS(self):
+        return self.__dict__['IMAGE_TAGS']
+
     def get(self, key):
         print(key, "=", self[key])
 
@@ -189,11 +202,11 @@ class Env(dict):
         print(json.dumps(self.__dict__, sort_keys=False, indent=4))
 
     def load(self):
-        with open(THINBOX_CONFIG_FILE) as json_data_file:
+        with open(self._thinbox_config_file) as json_data_file:
             self.__dict__ = json.load(json_data_file)
 
     def save(self):
-        with open(THINBOX_CONFIG_FILE, "w") as outfile:
+        with open(self._thinbox_config_file, "w") as outfile:
             json.dump(self.__dict__, outfile, indent=4)
 
 

@@ -2,6 +2,8 @@ import argparse
 
 import thinbox as thb
 
+from thinbox.config import IMAGE_TAGS
+
 try:
     import argcomplete
     USE_ARGCOMPLETE = True
@@ -92,6 +94,11 @@ def get_parser():
         help="increase output verbosity",
         action="store_true"
     )
+    parser.add_argument(
+        "-c",
+        "--config",
+        help="config file"
+    )
 
     subparsers = parser.add_subparsers(
         title="commands",
@@ -114,7 +121,7 @@ def get_parser():
     pull_tag_parser_gr.add_argument(
         "name",
         metavar="TAG",
-        choices=tb._get_rhel_tags(),
+        choices= IMAGE_TAGS, #_get_rhel_tags(),
         help="TAG to download"
     )
     pull_tag_parser_gr.add_argument(
