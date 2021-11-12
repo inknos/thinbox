@@ -33,7 +33,7 @@ Requires:       libvirt-client
 
 %build
 python3 setup.py build
-cd docs; make man
+make man
 
 %install
 python3 setup.py install --single-version-externally-managed -O1 --root=$RPM_BUILD_ROOT --record=INSTALLED_FILES
@@ -43,7 +43,7 @@ python3 setup.py install --single-version-externally-managed -O1 --root=$RPM_BUI
 %{_bindir}/%{name}
 %license LICENSE
 %defattr(-,root,root)
-%{_mandir}/man1/%{name}.1*
+/build/man/%{name}.1*
 
 
 %changelog
