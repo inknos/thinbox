@@ -44,6 +44,11 @@ def get_parser():
 
     thinbox run <command> <vm_name>
 
+    thinbox env
+        |
+        +-- env <env_name>
+        +-- env <env_name> <env_val>
+
     thinbox
         |
         +-- list/ls -------------|
@@ -178,6 +183,21 @@ def get_parser():
         choices=[d.name for d in tb.doms],
         metavar="VM_NAME",
         help="name of VM"
+    )
+    # env
+    env_parser = subparsers.add_parser(
+        "env",
+        help="print env"
+    )
+    env_parser.add_argument(
+        "var",
+        nargs='?',
+        help="var"
+    )
+    env_parser.add_argument(
+        "val",
+        nargs='?',
+        help="value"
     )
     # list
     list_parser = subparsers.add_parser(

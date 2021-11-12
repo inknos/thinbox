@@ -25,21 +25,21 @@ THINBOX = os.path.basename(sys.argv[0])
 # config directory according to XDG
 XDG_CONFIG_HOME = os.environ.get(
     "XDG_CONFIG_HOME", os.path.expanduser("~/.config"))
-CONFIG_DIR = os.path.join(XDG_CONFIG_HOME, "thinbox")
-USER_CONFIG = os.path.join(CONFIG_DIR, "config.json")
+THINBOX_CONFIG_DIR = os.path.join(XDG_CONFIG_HOME, "thinbox")
+THINBOX_CONFIG_FILE = os.path.join(THINBOX_CONFIG_DIR, "config.json")
 
 # cache directory according to XDG
 XDG_CACHE_HOME = os.environ.get(
     "XDG_CACHE_HOME", os.path.expanduser("~/.cache"))
-CACHE_DIR = os.path.join(XDG_CACHE_HOME, "thinbox")
+THINBOX_CACHE_DIR = os.path.join(XDG_CACHE_HOME, "thinbox")
 
 # image directory and hashes
 THINBOX_BASE_DIR = os.environ.get(
-    "THINBOX_BASE_DIR", os.path.join(CACHE_DIR, "base"))
+    "THINBOX_BASE_DIR", os.path.join(THINBOX_CACHE_DIR, "base"))
 THINBOX_IMAGE_DIR = os.environ.get(
-    "THINBOX_IMAGE_DIR", os.path.join(CACHE_DIR, "images"))
+    "THINBOX_IMAGE_DIR", os.path.join(THINBOX_CACHE_DIR, "images"))
 THINBOX_HASH_DIR = os.environ.get(
-    "THINBOX_HASH_DIR",  os.path.join(CACHE_DIR, "hash"))
+    "THINBOX_HASH_DIR",  os.path.join(THINBOX_CACHE_DIR, "hash"))
 
 # virtual variables
 THINBOX_MEMORY = "1024"
@@ -95,44 +95,105 @@ FEDORA_IMAGE_URL = {
 }
 
 
-class Env(object):
+ALLOWED_KEYS = {
+
+        "THINBOX_BASE_DIR",
+        "THINBOX_IMAGE_DIR",
+        "THINBOX_HASH_DIR",
+}
+
+PRIVATE_KEYS = {
+        "RHEL_BASE_URL",
+}
+
+KNOWN_KEYS = ALLOWED_KEYS.union(PRIVATE_KEYS)
+
+class Env(dict):
     def __init__(self, config=None):
         super().__init__()
         # make file optional
         # if file not found write file
-        self._thinbox_config_file = USER_CONFIG
+        self._thinbox_config_file = THINBOX_CONFIG_FILE
 
-        self._thinbox_base_dir = THINBOX_BASE_DIR
-        self._thinbox_image_dir = THINBOX_IMAGE_DIR
-        self._thinbox_hash_dir = THINBOX_HASH_DIR
-        # if dir not found create dir
         self.load()
 
-    @property
-    def thinbox_config_file(self):
-        return self._thinbox_config_file
+    def __setitem__(self, key, item):
+        if key not in ALLOWED_KEYS:
+            print("Cannot set key", key)
+            sys.exit(1)
+        if key not in KNOWN_KEYS:
+            print("Do not know key", key)
+            sys.exit(1)
+
+        self.__dict__[key] = item
+
+    def __getitem__(self, key):
+        if key not in KNOWN_KEYS:
+            print("Do not know key", key)
+            sys.exit(1)
+
+        return self.__dict__[key]
+
+    def __repr__(self):
+        return repr(self.__dict__)
+
+    def __len__(self):
+        return len(self.__dict__)
+
+    def __delitem__(self, key):
+        del self.__dict__[key]
+
+    def clear(self):
+        return self.__dict__.clear()
+
+    def copy(self):
+        return self.__dict__.copy()
+
+    def has_key(self, k):
+        return k in self.__dict__
+
+    def update(self, *args, **kwargs):
+        return self.__dict__.update(*args, **kwargs)
+
+    def keys(self):
+        return self.__dict__.keys()
+
+    def values(self):
+        return self.__dict__.values()
 
     @property
-    def thinbox_base_dir(self):
-        return self._thinbox_base_dir
+    def THINBOX_BASE_DIR(self):
+        return os.path.expanduser(self['THINBOX_BASE_DIR'])
 
     @property
-    def thinbox_image_dir(self):
-        return self._thinbox_image_dir
+    def THINBOX_IMAGE_DIR(self):
+        return os.path.expanduser(self['THINBOX_IMAGE_DIR'])
 
     @property
-    def thinbox_hash_dir(self):
-        return self._thinbox_hash_dir
+    def THINBOX_HASH_DIR(self):
+        return os.path.expanduser(self['THINBOX_HASH_DIR'])
+
+    @property
+    def RHEL_BASE_URL(self):
+        return self.__dict__['RHEL_BASE_URL']
+
+    def get(self, key):
+        print(key, "=", self[key])
+
+    def set(self, key, item):
+        self[key] = item
+        print(key, "=", self[key])
+        self.save()
 
     def print(self):
-        print(json.dumps(self._data, sort_keys=False, indent=4))
+        print(json.dumps(self.__dict__, sort_keys=False, indent=4))
 
     def load(self):
-        with open(self.thinbox_config_file) as json_data_file:
-            self._data = json.load(json_data_file)
+        with open(THINBOX_CONFIG_FILE) as json_data_file:
+            self.__dict__ = json.load(json_data_file)
 
     def save(self):
-        with open(self.thinbox_config_file, "w") as outfile:
-            json.dump(self._data, outfile)
+        with open(THINBOX_CONFIG_FILE, "w") as outfile:
+            json.dump(self.__dict__, outfile, indent=4)
 
 

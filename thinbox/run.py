@@ -53,6 +53,15 @@ def run():
     elif args.command == "copy":
         tb = thb.Thinbox()
         tb.copy(args.file, args.dest)
+    elif args.command == "env":
+        tb = thb.Thinbox()
+        if args.val:
+            tb.env.set(args.var, args.val)
+        elif args.var:
+            tb.env.get(args.var)
+        else:
+            tb.env.print()
+
     elif args.command == "run":
         tb = thb.Thinbox()
         tb.run(args.cmd, args.name)

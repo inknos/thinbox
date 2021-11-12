@@ -30,15 +30,6 @@ class Thinbox(object):
     base_images : list
         list of all base images available
 
-    base_dir : str
-        Directory where base images are stored
-
-    image_dir : str
-        Directory where vm images are stored
-
-    hash_dir : str
-        Directory where hashes are stored
-
 
     Methods
     -------
@@ -51,18 +42,16 @@ class Thinbox(object):
 
     def __init__(self, readonly=True):
         super().__init__()
+        self._env = Env()
         self._readonly = readonly
         self._doms = self._get_all_domains(readonly)
-        self._base_dir = THINBOX_BASE_DIR
-        self._image_dir = THINBOX_IMAGE_DIR
-        self._hash_dir = THINBOX_HASH_DIR
         self._create_cache_dirs()
         self._base_images = self._get_base_images()
 
     def _create_cache_dirs(self):
-        self._create_dir("Base cache", self.base_dir)
-        self._create_dir("Image cache", self.image_dir)
-        self._create_dir("Hash cache", self.hash_dir)
+        self._create_dir("Base cache", self.env.THINBOX_BASE_DIR)
+        self._create_dir("Image cache", self.env.THINBOX_IMAGE_DIR)
+        self._create_dir("Hash cache", self.env.THINBOX_HASH_DIR)
 
     def _create_dir(self, dirname, dirpath):
         if os.path.exists(dirpath) and not os.path.isdir(dirpath):
@@ -75,6 +64,10 @@ class Thinbox(object):
                 "{} dir not existing. Created on {}.".format(dirname, dirpath))
 
     @property
+    def env(self):
+        return self._env
+
+    @property
     def doms(self):
         self._get_all_domains(self._readonly)
         return self._doms
@@ -82,48 +75,6 @@ class Thinbox(object):
     @property
     def base_images(self):
         return self._base_images
-
-    @property
-    def base_dir(self):
-        """Directory where base images are stored
-
-        Defaults to $XDG_CACHE_HOME/thinbox/base
-
-        Imported from env var THINBOX_BASE_DIR
-
-        Returns
-        -------
-        Path of base images
-        """
-        return self._base_dir
-
-    @property
-    def image_dir(self):
-        """Directory where vm images are stored
-
-        Defaults to $XDG_CACHE_HOME/thinbox/images
-
-        Imported from env var THINBOX_IMAGE_DIR
-
-        Returns
-        -------
-        Path of vm images
-        """
-        return self._image_dir
-
-    @property
-    def hash_dir(self):
-        """Directory where hashes are stored
-
-        Defaults to $XDG_CACHE_HOME/thinbox/hash
-
-        Imported from env var THINBOX_HASH_DIR
-
-        Returns
-        -------
-        Path of hashes
-        """
-        return self._hash_dir
 
     def stop(self, name, opt=None):
         """Stop running domain
@@ -182,7 +133,7 @@ class Thinbox(object):
             logging.debug("Domain {} undefined".format(dom.name))
 
         # check if file exists
-        filepath = os.path.join(self.image_dir, name + ".qcow2")
+        filepath = os.path.join(self.env.THINBOX_IMAGE_DIR, name + ".qcow2")
         if os.path.exists(filepath):
             os.remove(filepath)
         else:
@@ -219,7 +170,7 @@ class Thinbox(object):
         tag : str
             Tag of image to download (RHEL only)
         """
-        if not RHEL_BASE_URL:
+        if not self.env.RHEL_BASE_URL:
             logging.warning(
                 "Variable RHEL_BASE_URL. If you know where to pull images please export this variable locally.")
             sys.exit(1)
@@ -229,7 +180,7 @@ class Thinbox(object):
     def image_list(self):
         """Print a list of base images on the system
         """
-        print(self.base_dir)
+        print(self.env.THINBOX_BASE_DIR)
         print()
         print("{:<50} {:<20}".format("IMAGE", "HASH"))
         for name in self.base_images:
@@ -237,7 +188,7 @@ class Thinbox(object):
             none = True
             hashes = []
             for hashfunc in sorted(RHEL_BASE_HASH):
-                if os.path.exists(os.path.join(self.hash_dir, name + "." + hashfunc + ".OK")):
+                if os.path.exists(os.path.join(self.env.THINBOX_HASH_DIR, name + "." + hashfunc + ".OK")):
                     hashes.append(hashfunc)
                     none = False
             if none:
@@ -253,7 +204,7 @@ class Thinbox(object):
             logging.warning("Image '{}' not found".format(name))
             return
 
-        filepath = os.path.join(self.base_dir, name)
+        filepath = os.path.join(self.env.THINBOX_BASE_DIR, name)
         os.remove(filepath)
         print("Image '{}' removed.".format(name))
 
@@ -392,13 +343,13 @@ class Thinbox(object):
 
     def create(self, base_name, name):
 
-        if not os.path.exists(self.image_dir):
-            os.makedirs(self.image_dir)
-        image = os.path.join(self.image_dir, name + ".qcow2")
-        base = os.path.join(self.base_dir, base_name)
+        if not os.path.exists(self.env.THINBOX_IMAGE_DIR):
+            os.makedirs(self.env.THINBOX_IMAGE_DIR)
+        image = os.path.join(self.env.THINBOX_IMAGE_DIR, name + ".qcow2")
+        base = os.path.join(self.env.THINBOX_BASE_DIR, base_name)
         if not os.path.exists(base):
             logging.error("Image {} not found in {}.".format(
-                base, self.base_dir))
+                base, self.env.THINBOX_BASE_DIR))
             if not _image_name_wrong(base):
                 print("Maybe the filename is incorrect?")
             print("To list the available images run: thinbox image")
@@ -466,13 +417,13 @@ class Thinbox(object):
 
     def _get_base_images(self):
         image_list = []
-        for root, dirs, files in os.walk(self.base_dir):
+        for root, dirs, files in os.walk(self.env.THINBOX_BASE_DIR):
             for file in files:
                 image_list.append(file)
         return image_list
 
     def _get_rhel_tags(self):
-        url = RHEL_BASE_URL
+        url = self.env.RHEL_BASE_URL
         page = requests.get(url)
         soup = BeautifulSoup(page.content, 'html.parser')
         tags = []
@@ -483,7 +434,7 @@ class Thinbox(object):
 
     def _generate_url_from_tag(self, tag):
         url = os.path.join(
-                RHEL_BASE_URL,
+                self.env.RHEL_BASE_URL,
                 tag,
                 "compose/BaseOS/x86_64/images/"
         )
@@ -495,14 +446,14 @@ class Thinbox(object):
 
     def _download_image(self, url):
         filename = os.path.split(url)[-1]
-        filepath = os.path.join(self.base_dir, filename)
+        filepath = os.path.join(self.env.THINBOX_BASE_DIR, filename)
         # check dir exist
         if not os.path.exists(CACHE_DIR):
             os.makedirs(CACHE_DIR)
         download_file(url, filepath)
         # TODO download hash
         # this works for rhel
-        hashpath = os.path.join(self.hash_dir, filename)
+        hashpath = os.path.join(self.env.THINBOX_HASH_DIR, filename)
         for ext in RHEL_BASE_HASH:
             download_file(url + "." + ext, hashpath + "." + ext)
         if self.check_hash(filename, "sha256"):
@@ -514,8 +465,8 @@ class Thinbox(object):
         """"This function returns the SHA-1 hash
         of the file passed into it"""
         h = hashfunc
-        filepath = os.path.join(self.base_dir, filename)
-        hashpath = os.path.join(self.hash_dir, filename + "." + ext)
+        filepath = os.path.join(self.env.THINBOX_BASE_DIR, filename)
+        hashpath = os.path.join(self.env.THINBOX_HASH_DIR, filename + "." + ext)
         if not os.path.exists(filepath):
             logging.error("Image file {} does not exists.".format(filepath))
             if not _image_name_wrong(filepath):
