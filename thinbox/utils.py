@@ -149,7 +149,8 @@ def download_file(url, filepath):
                 downloaded += len(data)
                 f.write(data)
                 done = int(50*downloaded/total)
-                sys.stdout.write('\r[{}{}]'.format(
+                sys.stdout.write('\r{}:\t[{}{}]'.format(
+                    os.path.basename(filepath),
                     '█' * done, '.' * (50-done)))
                 sys.stdout.flush()
     sys.stdout.write('\n')

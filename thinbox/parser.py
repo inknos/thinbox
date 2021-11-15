@@ -292,6 +292,7 @@ def get_parser():
     image_remove_parser_mg.add_argument(
         "name",
         nargs="?",
+        choices=tb.base_images,
         help="Remove a VM of name"
     )
     # vm

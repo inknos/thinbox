@@ -448,8 +448,8 @@ class Thinbox(object):
         filename = os.path.split(url)[-1]
         filepath = os.path.join(self.env.THINBOX_BASE_DIR, filename)
         # check dir exist
-        if not os.path.exists(CACHE_DIR):
-            os.makedirs(CACHE_DIR)
+        if not os.path.exists(self.env.THINBOX_BASE_DIR):
+            os.makedirs(self.env.THINBOX_BASE_DIR)
         download_file(url, filepath)
         # TODO download hash
         # this works for rhel
