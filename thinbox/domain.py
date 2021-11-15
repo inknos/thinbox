@@ -121,18 +121,49 @@ class Domain(object):
         return self._reason
 
     def shutdown(self):
+        """Shutdown domain
+
+        Call libvirt.virDomain.shutdown()
+
+        :rtype: int
+        """
         return self._dom.shutdown()
 
     def start(self):
+        """Start domain
+
+        Call libvirt.virDomain.create()
+
+        :rtype: int
+        """
         return self._dom.create()
 
     def destroy(self):
+        """Destroy domain
+
+        Call libvirt.virDomain.destroy()
+
+        :rtype: int
+        """
         return self._dom.destroy()
 
     def undefine(self):
+        """Undefine domain
+
+        Call libvirt.virDomain.undefine()
+
+        :rtype: int
+        """
         return self._dom.undefine()
 
     def _set_state_reason(self):
+        """Return domain's state and reason
+
+        Call libvirt.virDomain.state()
+
+        :returns: State and reason
+        :rtype: tuple
+        """
         state, reason = self._dom.state()
 
         if state == libvirt.VIR_DOMAIN_NOSTATE:
@@ -169,6 +200,8 @@ class Domain(object):
                 logging.debug("libvirt: {}".format(e))
 
     def _set_ip_from_addr(self):
+        """Sets new IP if empty str
+        """
         self._set_addr()
         if self._addr == {}:
             self._ip = ""
@@ -177,6 +210,8 @@ class Domain(object):
         self._ip = self._addr[tapx]['addrs'][0]['addr']
 
     def _set_mac_from_addr(self):
+        """Sets new MAC if empty str
+        """
         self._set_addr()
         if self._addr == {}:
             self._mac = ""
@@ -186,6 +221,14 @@ class Domain(object):
 
 
 class LibVirtConnection(object):
+    """Represent libvirt.virConnection object
+
+    :param conn: Connection to libvirt
+    :type conn: libvirt.virConnectiion
+
+    :param doms: Domains
+    :type doms: list
+    """
     def __init__(self, readonly=True):
         super().__init__()
         self._conn = self._get_connection(readonly)
@@ -200,6 +243,14 @@ class LibVirtConnection(object):
         return self._doms
 
     def _get_connection(self, readonly):
+        """Open a libvirt connection and return it
+
+        :param readonly: Open readonly connection
+        :type readonly: bool
+
+        :return: Libvirt connection
+        :rtype: libvirt.virConnection
+        """
         try:
             if readonly:
                 conn = libvirt.openReadOnly(None)
@@ -211,6 +262,14 @@ class LibVirtConnection(object):
         return conn
 
     def _get_domain(self, name):
+        """Get domain by name
+
+        :param name: Name of domain to get
+        :type name: str
+
+        :return: Domain by name
+        :rtype: libvirt.virDomain
+        """
         try:
             dom = self.conn.lookupByName(name)
         except libvirt.libvirtError as e:
@@ -219,4 +278,9 @@ class LibVirtConnection(object):
         return dom
 
     def _get_all_domains(self):
+        """Get all domains
+
+        :return: All Domains
+        :rtype: list
+        """
         return [Domain(d) for d in self.conn.listAllDomains()]
