@@ -260,6 +260,7 @@ def get_parser():
     remove_parser_mg.add_argument(
         "name",
         nargs="?",
+        choices=[d.name for d in tb.doms],
         help="Remove a VM of name"
     )
     # image
@@ -356,6 +357,7 @@ def get_parser():
     vm_remove_parser_mg.add_argument(
         "name",
         nargs="?",
+        choices=[d.name for d in tb.doms],
         help="Remove a VM of name"
     )
     # enter
