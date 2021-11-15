@@ -22,15 +22,11 @@ def _url_is_valid(url):
     https://stackoverflow.com/questions/7160737/how-to-validate-a-url-in-python-malformed-or-not
     https://github.com/django/django/blob/stable/1.3.x/django/core/validators.py#L45
 
-    Parameters
-    ----------
-    url : str
-        The url to validate
+    :parameter url: The url to validate
+    :type url: str
 
-    Returns
-    -------
-    bool
-        True if the url is valid
+    :return: True if the url is valid
+    :rtype: bool
     """
 
     regex = re.compile(
@@ -58,6 +54,11 @@ def _ping_server(server: str, port=443, timeout=3):
 
 
 def is_virt_enabled():
+    """Detect if virtualization is enabled
+
+    :return: True if enabled
+    :rtype: bool
+    """
     env = os.environ.copy()
     env["LC_LANG"] = "C"
     out = subprocess.run(["lscpu"], env=env, stdout=subprocess.PIPE)
@@ -65,6 +66,20 @@ def is_virt_enabled():
 
 
 def create_ssh_connection(hostname, username="root", port=22):
+    """Create and return ssh connection
+
+    :param hostname: Hostname to ssh in
+    :type hostname: str
+
+    :parmam username: Username for ssh connection, defaults to "root"
+    :type username: str
+
+    :param port: Port to connect, defaults to 22
+    :type port: int
+
+    :return: Ssh connection
+    :rtype: paramiko.SSHClient
+    """
     client = paramiko.SSHClient()
     client.load_system_host_keys()
     client.set_missing_host_key_policy(paramiko.client.AutoAddPolicy())
@@ -73,6 +88,14 @@ def create_ssh_connection(hostname, username="root", port=22):
 
 
 def run_ssh_command(session, cmd):
+    """Run command in ssh session
+
+    :param session: SSH session
+    :type session: paramiko.SSHClient
+
+    :param cmd: Command to run
+    :type cmd: str
+    """
     logging.debug("Command", cmd)
 
     ssh_stdin, ssh_stdout, ssh_stderr = session.exec_command(cmd)
@@ -88,6 +111,14 @@ def run_ssh_command(session, cmd):
 
 
 def _image_name_wrong(name):
+    """Checks base image name
+
+    :param name: Name of image to check
+    :type name: str
+
+    :returns: True if valid
+    :rtype: bool
+    """
     return name.endswith(".qcow2")
 
 
@@ -105,10 +136,8 @@ def logging_subprocess(process, output):
 def ssh_connect(dom):
     """Connect and open interactive ssh shell
 
-    Parameters
-    ----------
-    name : str
-        Machine name
+    :parameter name: Machine name
+    :type name: str
     """
     logging.debug("options: {}".format(THINBOX_SSH_OPTIONS))
     os.system("ssh {} root@{}".format(THINBOX_SSH_OPTIONS, dom.ip))
@@ -117,20 +146,19 @@ def ssh_connect(dom):
 def download_file(url, filepath):
     """Download file from url to specific path
 
-    Parameters
-    ----------
-    url : str
-        Location of file to be downloaded
+    Prints nice status bar
 
-    path : str
-        Path where the file will be saved
+    :parameter url: Location of file to be downloaded
+    :type url: str
 
-    Returns
-    -------
-    bool
-        True if file is successfully downloaded
+    :parameter path: Path where the file will be saved
+    :type path: str
+
+    :return: True if file is successfully downloaded
+    :rtype: bool
     """
-    _url_is_valid(url)
+    if not _url_is_valid(url):
+        logger.warning("URL may be in not valid format.")
 
     # check file exist
     if os.path.exists(filepath):
@@ -157,6 +185,14 @@ def download_file(url, filepath):
     return True
 
 def printd(text, delay=.5):
+    """Prints string with ending dots
+
+    :param text: String to print
+    :type text: str
+
+    :param delay: Delay in seconds, defaults to .5
+    :type delay: float, optional
+    """
     print(end=text)
     n_dots = 0
 
@@ -172,6 +208,14 @@ def printd(text, delay=.5):
         sleep(delay)
 
 def os_variant(image):
+    """Guess OS-Variant to init virtual machine
+
+    :param image: Name of image to guess
+    :type name: str
+
+    :return: valid os_variant
+    :rtype: str
+    """
     if "rhel" in image:
         if "8.6" in image:
             return "none"

@@ -12,7 +12,6 @@ Welcome to Thinbox's documentation!
    command_ref
 
 
-
 Indices and tables
 ==================
 

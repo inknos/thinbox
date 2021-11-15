@@ -12,6 +12,8 @@ except ImportError:
 
 
 class Formatter(argparse.HelpFormatter):
+    """Returns formatter
+    """
     def _format_action(self, action):
         if isinstance(action, argparse._SubParsersAction):
             parts = []
@@ -24,62 +26,7 @@ class Formatter(argparse.HelpFormatter):
 
 def get_parser():
     """
-    Returns a parser with this structure
-    thinbox create <image> <vm_name> [autocomplete]
-
-    thinbox pull
-    |
-    +-- tag <tag> [autocomplete]
-    |   |
-    +-- url <url>
-        |
-        +-- --skip-check
-
-    thinbox image
-        |
-        +-- list/ls
-        +-- remove/rm <image> [autocomplete]
-            |
-            +-- -a
-
-    thinbox copy <files> <dest>
-
-    thinbox run <command> <vm_name>
-
-    thinbox env
-        |
-        +-- env <env_name>
-        +-- env <env_name> <env_val>
-
-    thinbox
-        |
-        +-- list/ls -------------|
-        |   |                    |
-        |   +-- -a/--all         |
-        |   +-- -o/--other       |
-        |   +-- -p/--paused      |
-        |   +-- -r/--running     |
-        |   +-- -s/--stopped     |
-        +-- remove/rm <vm_name> ----| [autocomplete]
-            |                    |  |
-            +-- -a --------------------|
-                                 |  |  |
-    thinbox vm                   |  |  |
-        |                        |  |  |
-        +-- list/ls -------------|  |  |
-        |   |                       |  |
-        |   +-- -a/--all            |  |
-        |   +-- -o/--other          |  |
-        |   +-- -p/--paused         |  |
-        |   +-- -r/--running        |  |
-        |   +-- -s/--stopped        |  |
-        +-- remove/rm <vm_name> ----|  | [autocomplete]
-            |                          |
-            +-- -a --------------------|
-
-    thinbox enter <vm_name> [autocomplete]
-    thinbox start <vm_name> [autocomplete]
-    thinbox stop  <vm_name> [autocomplete]
+    Returns parser
     """
 
     tb = thb.Thinbox()

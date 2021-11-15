@@ -10,34 +10,8 @@ class Thinbox(object):
     """
     A class made to represent a Thinbox run
 
-    Attributes
-    ----------
-    all_domains : list
-        list of names of all domains
-
-    all_running_domains : list
-        list of names of all running domains
-
-    all_stopped_domains : list
-        list of names of all stopped domains
-
-    all_paused_domains : list
-        list of names of all paused domains
-
-    all_other_domains : list
-        list of names of all other domains
-
-    base_images : list
-        list of all base images available
-
-
-    Methods
-    -------
-    pull(tag=None, url=None)
-        Pulls a base image from a url or from a tag
-
-    enter(name)
-        Enter domain
+    :param doms: Domains of libvirt
+    :type doms: thinbox.domain.Domain
     """
 
     def __init__(self, readonly=True, config=None):
@@ -79,14 +53,11 @@ class Thinbox(object):
     def stop(self, name, opt=None):
         """Stop running domain
 
-        Parameters
-        ----------
-        name : str
-            Name of domain to stop
+        :param name: Name of domain to stop
+        :type name: str
 
-        opt : str, optional
-            Options to pass to virsh command
-            Options are None, "--mode=acpi"
+        :param opt: Options to pass to virsh command. Options are None, "--mode=acpi"
+        :type opt: str, optional
         """
         dom = self._get_dom_from_name(name)
         if dom.active == 0:
@@ -101,11 +72,8 @@ class Thinbox(object):
     def start(self, name):
         """Start a domain
 
-        Parameters
-        ----------
-
-        name : str
-            Name of domain to start
+        :param name: Name of domain to start
+        :type name: str
         """
         dom = self._get_dom_from_name(name)
 
@@ -120,10 +88,8 @@ class Thinbox(object):
     def remove(self, name):
         """Remove a domain of given name
 
-        Parameters
-        ---------
-        name : str
-            Name of domain to remove
+        :param name: Name of domain to remove
+        :type name: str
         """
         dom = self._get_dom_from_name(name)
         if dom.active == 1:
@@ -154,10 +120,11 @@ class Thinbox(object):
     def pull_url(self, url, skip=True):
         """Download a qcow2 image file from url
 
-        Parameters
-        ----------
-        url : str
-            Url of image to download
+        :param url: Url of image to download
+        :typr url: str
+
+        :param skip: Skip hash check
+        :type skip: bool, optional
         """
         print("Pulling {}".format(url))
         self._download_image(url)
@@ -165,10 +132,11 @@ class Thinbox(object):
     def pull_tag(self, tag, skip=True):
         """Download a qcow2 image file from tag
 
-        Parameters
-        ----------
-        tag : str
-            Tag of image to download (RHEL only)
+        :param tag: Tag of image to download (RHEL only)
+        :type tag: str
+
+        :param skip: Skip hash check
+        :type skip: bool, optional
         """
         if not self.env.RHEL_BASE_URL:
             logging.warning(
@@ -199,6 +167,11 @@ class Thinbox(object):
             print()
 
     def image_remove(self, name):
+        """Remove base image
+
+        :param name: Name of base image to remove
+        :type name: str
+        """
         # check if image exist
         if name not in self.base_images:
             logging.warning("Image '{}' not found".format(name))
@@ -209,6 +182,8 @@ class Thinbox(object):
         print("Image '{}' removed.".format(name))
 
     def image_remove_all(self):
+        """Remove all base images
+        """
         for name in self.base_images:
             self.image_remove(name)
 
@@ -245,14 +220,11 @@ class Thinbox(object):
         thinbox test:/path/file .
         thinbox test:/path/file test/path/file2 /path
 
-        Parameters
-        ----------
-        files : list
-            List of files to copy in the domain
+        :parameter files: List of files to copy in the domain
+        :type files: list
 
-        name : str
-            Name of domain to copy file/files in
-
+        :parameter name: Name of domain to copy file/files in
+        :type name: str
         """
         # TODO
         # is domain running?
@@ -295,11 +267,9 @@ class Thinbox(object):
     def list(self, fil=""):
         """List domains
 
-        Parameters
-        ----------
-        fil : str, optional
-            Filter domains by state
+        :parameter fil: Filter domains by state.
             Options are "", "running", "stopped", "paused", "other"
+        :type fil: str, optional
         """
         def state_filter(d):
             if d.state == fil:
@@ -327,10 +297,8 @@ class Thinbox(object):
 
         If domain is stopped, start it
 
-        Parameters
-        ----------
-        dom : str
-            Domain to ssh into
+        :parameter dom: Domain to ssh into
+        :type dom: str
         """
         dom = self._get_dom_from_name(name)
         # if domain is not up, start it
@@ -464,9 +432,12 @@ class Thinbox(object):
     def _check_hash(self, filename, ext, hashfunc):
         """"This function returns the SHA-1 hash
         of the file passed into it"""
+
         h = hashfunc
+
         filepath = os.path.join(self.env.THINBOX_BASE_DIR, filename)
         hashpath = os.path.join(self.env.THINBOX_HASH_DIR, filename + "." + ext)
+
         if not os.path.exists(filepath):
             logging.error("Image file {} does not exists.".format(filepath))
             if not _image_name_wrong(filepath):
@@ -504,18 +475,14 @@ class Thinbox(object):
     def check_hash(self, filename, hashname="md5"):
         """Check hash of file
 
-        Parameters
-        ----------
-        filename : str
-            Name of the file to check
+        :parameter filename: Name of the file to check
+        :type filename: str
 
-        hashname : str, optional
-            Type of hash
+        :parameter hashname: Type of hash
+        :type hashname: str, optional
 
-        Returns
-        -------
-        result : bool
-            True if hashes match
+        :return: True if hashes match
+        :rtype: bool
         """
         if hashname == "md5" or hashname == "md5sum":
             hashfunc = hashlib.md5()
