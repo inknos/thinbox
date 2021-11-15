@@ -156,7 +156,8 @@ class Thinbox(object):
             none = True
             hashes = []
             for hashfunc in sorted(RHEL_BASE_HASH):
-                if os.path.exists(os.path.join(self.env.THINBOX_HASH_DIR, name + "." + hashfunc + ".OK")):
+                if os.path.exists(os.path.join(
+                        self.env.THINBOX_HASH_DIR, name + "." + hashfunc + ".OK")):
                     hashes.append(hashfunc)
                     none = False
             if none:
@@ -198,9 +199,10 @@ class Thinbox(object):
             host = file
 
         if file.count(":") > 1:
-            logging.warning("More than one ':' in '{}', split may be wrong".format(file))
+            logging.warning(
+                "More than one ':' in '{}', split may be wrong".format(file))
 
-        if host not in [ d.name for d in self.doms ]:
+        if host not in [d.name for d in self.doms]:
             logging.error("Domain '{}' not found.".format(host))
             sys.exit(1)
 
@@ -209,7 +211,6 @@ class Thinbox(object):
 
         path = file.removeprefix(host).removeprefix(":")
         return host, path
-
 
     def copy(self, files, name):
         """Copy file or files into a running domain
@@ -233,7 +234,8 @@ class Thinbox(object):
 
         # identify if it's put or pull
         put = False
-        if name in [d.name for d in self.doms] or name.split(":/")[0] in  [d.name for d in self.doms]:
+        if name in [d.name for d in self.doms] or name.split(
+                ":/")[0] in [d.name for d in self.doms]:
             # PUT
             host, path = self._get_host_path_split_last_column(name)
 
@@ -262,7 +264,6 @@ class Thinbox(object):
                 for path in paths:
                     scp.get(path, name)
                     print("Copied file '{}' into '{}'.".format(path, name))
-
 
     def list(self, fil=""):
         """List domains
@@ -327,7 +328,6 @@ class Thinbox(object):
             logging.error("Domain with name '{}' exists.".format(name))
             sys.exit(1)
 
-
         print("Creatin qemu image from '{}'".format(base_name))
         p_qemu = subprocess.Popen([
             'qemu-img', 'create',
@@ -355,7 +355,7 @@ class Thinbox(object):
             '--disk', image,
             '--import',
             '--os-type=linux',
-            '--os-variant='+osv,
+            '--os-variant=' + osv,
             '--noautoconsole'],
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE
@@ -402,9 +402,9 @@ class Thinbox(object):
 
     def _generate_url_from_tag(self, tag):
         url = os.path.join(
-                self.env.RHEL_BASE_URL,
-                tag,
-                "compose/BaseOS/x86_64/images/"
+            self.env.RHEL_BASE_URL,
+            tag,
+            "compose/BaseOS/x86_64/images/"
         )
         print(url)
         page = requests.get(url)
@@ -436,7 +436,9 @@ class Thinbox(object):
         h = hashfunc
 
         filepath = os.path.join(self.env.THINBOX_BASE_DIR, filename)
-        hashpath = os.path.join(self.env.THINBOX_HASH_DIR, filename + "." + ext)
+        hashpath = os.path.join(
+            self.env.THINBOX_HASH_DIR,
+            filename + "." + ext)
 
         if not os.path.exists(filepath):
             logging.error("Image file {} does not exists.".format(filepath))

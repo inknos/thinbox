@@ -39,7 +39,7 @@ THINBOX_BASE_DIR = os.environ.get(
 THINBOX_IMAGE_DIR = os.environ.get(
     "THINBOX_IMAGE_DIR", os.path.join(THINBOX_CACHE_DIR, "images"))
 THINBOX_HASH_DIR = os.environ.get(
-    "THINBOX_HASH_DIR",  os.path.join(THINBOX_CACHE_DIR, "hash"))
+    "THINBOX_HASH_DIR", os.path.join(THINBOX_CACHE_DIR, "hash"))
 
 # virtual variables
 THINBOX_MEMORY = "1024"
@@ -102,17 +102,18 @@ IMAGE_TAGS = IMAGE_TAGS.sort()
 
 ALLOWED_KEYS = {
 
-        "THINBOX_BASE_DIR",
-        "THINBOX_IMAGE_DIR",
-        "THINBOX_HASH_DIR",
+    "THINBOX_BASE_DIR",
+    "THINBOX_IMAGE_DIR",
+    "THINBOX_HASH_DIR",
 }
 
 PRIVATE_KEYS = {
-        "RHEL_BASE_URL",
-        "IMAGE_TAGS"
+    "RHEL_BASE_URL",
+    "IMAGE_TAGS"
 }
 
 KNOWN_KEYS = ALLOWED_KEYS.union(PRIVATE_KEYS)
+
 
 class Env(dict):
     def __init__(self, config=None):
@@ -208,5 +209,3 @@ class Env(dict):
     def save(self):
         with open(self._thinbox_config_file, "w") as outfile:
             json.dump(self.__dict__, outfile, indent=4)
-
-

@@ -14,6 +14,7 @@ except ImportError:
 class Formatter(argparse.HelpFormatter):
     """Returns formatter
     """
+
     def _format_action(self, action):
         if isinstance(action, argparse._SubParsersAction):
             parts = []
@@ -68,7 +69,7 @@ def get_parser():
     pull_tag_parser_gr.add_argument(
         "name",
         metavar="TAG",
-        choices= IMAGE_TAGS, #_get_rhel_tags(),
+        choices=IMAGE_TAGS,  # _get_rhel_tags(),
         help="TAG to download"
     )
     pull_tag_parser_gr.add_argument(

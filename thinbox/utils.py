@@ -173,16 +173,18 @@ def download_file(url, filepath):
         else:
             downloaded = 0
             total = int(total)
-            for data in response.iter_content(chunk_size=max(int(total/1000), 1024*1024)):
+            for data in response.iter_content(
+                    chunk_size=max(int(total / 1000), 1024 * 1024)):
                 downloaded += len(data)
                 f.write(data)
-                done = int(50*downloaded/total)
+                done = int(50 * downloaded / total)
                 sys.stdout.write('\r{}:\t[{}{}]'.format(
                     os.path.basename(filepath),
-                    '█' * done, '.' * (50-done)))
+                    '█' * done, '.' * (50 - done)))
                 sys.stdout.flush()
     sys.stdout.write('\n')
     return True
+
 
 def printd(text, delay=.5):
     """Prints string with ending dots
@@ -199,13 +201,14 @@ def printd(text, delay=.5):
     while True:
         if n_dots == 3:
             print(end='\b\b\b', flush=True)
-            print(end='   ',    flush=True)
+            print(end='   ', flush=True)
             print(end='\b\b\b', flush=True)
             n_dots = 0
         else:
             print(end='.', flush=True)
             n_dots += 1
         sleep(delay)
+
 
 def os_variant(image):
     """Guess OS-Variant to init virtual machine
@@ -228,4 +231,3 @@ def os_variant(image):
             return "feora35"
     else:
         return "none"
-
