@@ -1,6 +1,6 @@
 %define debug_package %{nil}
 %define name thinbox
-%define version 0.2.0
+%define version 0.3.0
 %define release 1
 
 Name:           %{name}
@@ -14,6 +14,7 @@ Source0:        %{url}/archive/refs/tags/v%{version}.tar.gz
 
 BuildRequires:  python3
 BuildRequires:  python3-setuptools
+BuildRequires:  python3-sphinx
 
 Requires:       guestfs-tools
 Requires:       python3
@@ -33,7 +34,7 @@ Requires:       libvirt-client
 
 %build
 python3 setup.py build
-make man
+sphinx-build -b man -c source source/man/man1/ build/%{_mandir}/man1
 
 %install
 python3 setup.py install --single-version-externally-managed -O1 --root=$RPM_BUILD_ROOT --record=INSTALLED_FILES
@@ -43,10 +44,15 @@ python3 setup.py install --single-version-externally-managed -O1 --root=$RPM_BUI
 %{_bindir}/%{name}
 %license LICENSE
 %defattr(-,root,root)
-/build/man/%{name}.1*
+%{_mandir}/man1/%{name}.1*
 
 
 %changelog
+* Mon Nov 15 2021 Nicola Sella <nsella@redhat.com> - 0.3.0-1
+- Add documentation in Sphinx
+- Add env command
+- rewrite code
+
 * Wed Nov 10 2021 Nicola Sella <nsella@redhat.com> - 0.2.0-1
 - Rewrite using python3-libvirt
 - Split files for better scalability

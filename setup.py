@@ -7,7 +7,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='thinbox',
-    version='0.2.0',
+    version='0.3.0',
     description='Thinbox rewrittein in pyhton',
     author='Nicola Sella',
     author_email='nsella@redhat.com',
