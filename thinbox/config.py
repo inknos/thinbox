@@ -101,10 +101,11 @@ IMAGE_TAGS = IMAGE_TAGS.sort()
 
 
 ALLOWED_KEYS = {
-
     "THINBOX_BASE_DIR",
     "THINBOX_IMAGE_DIR",
     "THINBOX_HASH_DIR",
+    "THINBOX_CACHE_DIR",
+    "THINBOX_CONFIG_DIR",
 }
 
 PRIVATE_KEYS = {
@@ -116,14 +117,49 @@ KNOWN_KEYS = ALLOWED_KEYS.union(PRIVATE_KEYS)
 
 
 class Env(dict):
+    """Define Thinbox environment
+
+    Env behave like a python dict but it has a restricted set of keys that can contain.
+    These keys are defined in by KNOWN_KEYS which is a union of ALLOWED_KEYS and
+    PRIVATE_KEYS.
+
+    Each key can be called using python dict style or as a property, although getting
+    and setting by property is always preferred.
+
+    Keys are divided into two groups:
+
+    ALLOWED_KEYS can be edited using `thinbox env` command.
+
+    PRIVATE_KEYS can be set editing config files and are supposed to be dangerous or
+    private.
+
+    :property THINBOX_CONFIG_DIR: Config dir, defaults to ~/.config/thinbox
+    :type THINBOX_CONFIG_DIR: str
+
+    :property THINBOX_CACHE_DIR: Cache dir, defaults to ~/.cache/thinbox
+    :type THINBOX_CACHE_DIR: str
+
+    :property THINBOX_BASE_DIR: Base dir, defaults to $THINBOX_CACHE_DIR/base
+    :type THINBOX_BASE_DIR: str
+
+    :property THINBOX_IMAGE_DIR: Image dir, defaults to $THINBOX_CACHE_DIR/images
+    :type THINBOX_IMAGE_DIR: str
+
+    :property THINBOX_HASH_DIR: Hash dir, defaults to $THINBOX_CACHE_DIR/hash
+    :type THINBOX_HASH_DIR: str
+
+    """
     def __init__(self, config=None):
         super().__init__()
         # make file optional
         # if file not found write file
         if config:
-            self._thinbox_config_file = config
+            self.THINBOX_CONFIG_FILE = config
         else:
-            self._thinbox_config_file = THINBOX_CONFIG_FILE
+            self.THINBOX_CONFIG_FILE = THINBOX_CONFIG_FILE
+            if not os.path.exists(self.THINBOX_CONFIG_FILE):
+                self.load_defaults()
+                self.save()
 
         self.load()
 
@@ -172,40 +208,143 @@ class Env(dict):
         return self.__dict__.values()
 
     @property
+    def THINBOX_CACHE_DIR(self):
+        """Get THINBOX_CACHE_DIR
+
+        :rtype: str
+        """
+        return os.path.expanduser(self['THINBOX_CACHE_DIR'])
+
+    @THINBOX_CACHE_DIR.setter
+    def THINBOX_CACHE_DIR(self, val):
+        """Set THINBOX_CACHE_DIR
+
+        :type val: str
+        """
+        self['THINBOX_CACHE_DIR'] = val
+
+    @property
+    def THINBOX_CONFIG_DIR(self):
+        """Get THINBOX_CONFIG_DIR
+
+        :rtype: str
+        """
+        return os.path.expanduser(self['THINBOX_CONFIG_DIR'])
+
+    @THINBOX_CONFIG_DIR.setter
+    def THINBOX_CONFIG_DIR(self, val):
+        """Set THINBOX_CONFIG_DIR
+
+        :type val: str
+        """
+        self['THINBOX_CONFIG_DIR'] = val
+
+    @property
     def THINBOX_BASE_DIR(self):
+        """Get THINBOX_BASE_DIR
+
+        :rtype: str
+        """
         return os.path.expanduser(self['THINBOX_BASE_DIR'])
+
+    @THINBOX_BASE_DIR.setter
+    def THINBOX_BASE_DIR(self, val):
+        """Set THINBOX_BASE_DIR
+
+        :type val: str
+        """
+        self['THINBOX_BASE_DIR'] = val
 
     @property
     def THINBOX_IMAGE_DIR(self):
+        """Get THINBOX_IMAGE_DIR
+
+        :rtype: str
+        """
         return os.path.expanduser(self['THINBOX_IMAGE_DIR'])
+
+    @THINBOX_IMAGE_DIR.setter
+    def THINBOX_IMAGE_DIR(self, val):
+        """Set THINBOX_IMAGE_DIR
+
+        :type val: str
+        """
+        self['THINBOX_IMAGE_DIR'] = val
 
     @property
     def THINBOX_HASH_DIR(self):
+        """Get THINBOX_HASH_DIR
+
+        :rtype: str
+        """
         return os.path.expanduser(self['THINBOX_HASH_DIR'])
+
+    @THINBOX_HASH_DIR.setter
+    def THINBOX_HASH_DIR(self, val):
+        """Set THINBOX_HASH_DIR
+
+        :type val: str
+        """
+        self['THINBOX_HASH_DIR'] = val
 
     @property
     def RHEL_BASE_URL(self):
+        """Get RHEL_BASE_URL
+
+        :rtype: str
+        """
         return self.__dict__['RHEL_BASE_URL']
 
     @property
     def IMAGE_TAGS(self):
+        """Get THINBOX_IMAGE_TAGS
+
+        :rtype: str
+        """
         return self.__dict__['IMAGE_TAGS']
 
     def get(self, key):
+        """Get and dump a key to stdout
+
+        :param key: key to dump
+        :type key: str
+        """
         print(key, "=", self[key])
 
     def set(self, key, item):
+        """Set a key and dump it and save config file
+
+        :param key: key to set
+        :type key: str
+
+        :param item: item to set
+        """
         self[key] = item
-        print(key, "=", self[key])
+        self.get(key)
         self.save()
 
     def print(self):
+        """Dump object to stdout
+        """
         print(json.dumps(self.__dict__, sort_keys=False, indent=4))
 
     def load(self):
-        with open(self._thinbox_config_file) as json_data_file:
+        """Load object from file
+        """
+        with open(self.THINBOX_CONFIG_FILE) as json_data_file:
             self.__dict__ = json.load(json_data_file)
 
     def save(self):
-        with open(self._thinbox_config_file, "w") as outfile:
+        """Save object to file
+        """
+        with open(self.THINBOX_CONFIG_FILE, "w") as outfile:
             json.dump(self.__dict__, outfile, indent=4)
+
+    def load_defaults(self):
+        """Load and init default values
+        """
+        self.THINBOX_CACHE_DIR = THINBOX_CACHE_DIR
+        self.THINBOX_CONFIG_DIR = THINBOX_CONFIG_DIR
+        self.THINBOX_BASE_DIR = os.path.join(self.THINBOX_CACHE_DIR, 'base')
+        self.THINBOX_IMAGE_DIR = os.path.join(self.THINBOX_CACHE_DIR, 'images')
+        self.THINBOX_HASH_DIR = os.path.join(self.THINBOX_CACHE_DIR, 'hash')
