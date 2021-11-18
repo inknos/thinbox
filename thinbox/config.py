@@ -1,6 +1,7 @@
 import os
 import sys
 import json
+import logging
 import yaml
 
 from sysconfig import get_config_var
@@ -104,6 +105,7 @@ ALLOWED_KEYS = {
     "THINBOX_CACHE_DIR",
     "THINBOX_CONFIG_DIR",
     "RHEL_BASE_URL",
+    "THINBOX_MEMORY",
 }
 
 PRIVATE_KEYS = {
@@ -148,6 +150,8 @@ class Env(dict):
     :property THINBOX_HASH_DIR: Hash dir, defaults to $THINBOX_CACHE_DIR/hash
     :type THINBOX_HASH_DIR: str
 
+    :property THINBOX_MEMORY: Memory size of thinbox domains
+    :type THINBOX_MEMORY: int
     """
     def __init__(self, config=None):
         super().__init__()
@@ -155,18 +159,24 @@ class Env(dict):
         # if file not found write file
         if config:
             self.THINBOX_CONFIG_FILE = config
+            self.load()
         else:
-            self.THINBOX_CONFIG_FILE = THINBOX_CONFIG_FILE
+            self.THINBOX_CONFIG_DIR = os.path.expanduser('~/.config/thinbox')
+            self.THINBOX_CONFIG_FILE = os.path.expanduser('~/.config/thinbox/config.json')
+
             if not os.path.exists(self.THINBOX_CONFIG_FILE):
                 self.load_defaults()
-                self.save()
+                #self.save()
+            else:
+                self.load()
 
-        self.load()
+        #self.load()
+        self._create_cache_dirs()
 
     def __setitem__(self, key, item):
-        if key not in ALLOWED_KEYS:
-            print("Cannot set key", key)
-            sys.exit(1)
+        #if key not in ALLOWED_KEYS:
+        #    print("Cannot set key", key)
+        #    sys.exit(1)
         if key not in KNOWN_KEYS:
             print("Do not know key", key)
             sys.exit(1)
@@ -245,6 +255,10 @@ class Env(dict):
 
         :rtype: str
         """
+        try:
+            return os.path.expanduser(self['THINBOX_BASE_DIR'])
+        except KeyError:
+            self.THINBOX_BASE_DIR = os.path.join(self.THINBOX_CACHE_DIR, 'base')
         return os.path.expanduser(self['THINBOX_BASE_DIR'])
 
     @THINBOX_BASE_DIR.setter
@@ -261,6 +275,10 @@ class Env(dict):
 
         :rtype: str
         """
+        try:
+            return os.path.expanduser(self['THINBOX_IMAGE_DIR'])
+        except KeyError:
+            self.THINBOX_IMAGE_DIR = os.path.join(self.THINBOX_CACHE_DIR, 'images')
         return os.path.expanduser(self['THINBOX_IMAGE_DIR'])
 
     @THINBOX_IMAGE_DIR.setter
@@ -277,6 +295,10 @@ class Env(dict):
 
         :rtype: str
         """
+        try:
+            return os.path.expanduser(self['THINBOX_HASH_DIR'])
+        except KeyError:
+            self.THINBOX_HASH_DIR = os.path.join(self.THINBOX_CACHE_DIR, 'hash')
         return os.path.expanduser(self['THINBOX_HASH_DIR'])
 
     @THINBOX_HASH_DIR.setter
@@ -303,13 +325,36 @@ class Env(dict):
         """
         return self.__dict__['IMAGE_TAGS']
 
+    @property
+    def THINBOX_MEMORY(self):
+        """Get THINBOX_MEMORY
+
+        :rtype: int
+        """
+        return self.__dict__['THINBOX_MEMORY']
+
+    def get_key(self, key):
+        """
+        """
+        return self[key]
+
+    def set_key(self, key, item):
+        self[key] = item
+        self._create_config_dirs()
+        self.save()
+        return item
+
+    def _printkv(self, key):
+        print(key, "=", self.get_key(key))
+
     def get(self, key):
         """Get and dump a key to stdout
 
         :param key: key to dump
         :type key: str
         """
-        print(key, "=", self[key])
+        self._printkv(key)
+        return self.get_key(key)
 
     def set(self, key, item):
         """Set a key and dump it and save config file
@@ -319,9 +364,9 @@ class Env(dict):
 
         :param item: item to set
         """
-        self[key] = item
-        self.get(key)
-        self.save()
+        self.set_key(key, item)
+        self._printkv(key)
+        return item
 
     def print(self):
         """Dump object to stdout
@@ -337,14 +382,30 @@ class Env(dict):
     def save(self):
         """Save object to file
         """
+        if not os.path.exists(self.THINBOX_CONFIG_FILE):
+            print("Saved file {}.".format(self.THINBOX_CONFIG_FILE))
         with open(self.THINBOX_CONFIG_FILE, "w") as outfile:
             json.dump(self.__dict__, outfile, indent=4)
 
     def load_defaults(self):
         """Load and init default values
         """
-        self.THINBOX_CACHE_DIR = THINBOX_CACHE_DIR
-        self.THINBOX_CONFIG_DIR = THINBOX_CONFIG_DIR
+        self.THINBOX_CACHE_DIR = os.path.expanduser('~/.cache/thinbox')
+        self.THINBOX_CONFIG_DIR = os.path.expanduser('~/.config/thinbox')
         self.THINBOX_BASE_DIR = os.path.join(self.THINBOX_CACHE_DIR, 'base')
         self.THINBOX_IMAGE_DIR = os.path.join(self.THINBOX_CACHE_DIR, 'images')
         self.THINBOX_HASH_DIR = os.path.join(self.THINBOX_CACHE_DIR, 'hash')
+
+    def _create_cache_dirs(self):
+        self._create_dir(self.THINBOX_CACHE_DIR)
+        self._create_dir(self.THINBOX_BASE_DIR)
+        self._create_dir(self.THINBOX_IMAGE_DIR)
+        self._create_dir(self.THINBOX_HASH_DIR)
+
+    def _create_config_dirs(self):
+        self._create_dir(self.THINBOX_CONFIG_DIR)
+
+    def _create_dir(self, name):
+        if not os.path.exists(name):
+            os.makedirs(name)
+            logging.debug("Created dir {}.".format(name))
