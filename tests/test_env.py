@@ -119,6 +119,25 @@ class TestEnv(unittest.TestCase):
         self.assertTrue(os.path.exists(
             os.path.expanduser('~/.cache/thinbox/cache.json')))
 
+    def test_clear(self):
+        """Clear cache
+        """
+        self.test_cache_file()
+
+        self.env.clear()
+
+        self.assertTrue(not os.path.exists('~/.cache/thinbox/cache.json'))
+
+    def test_clear_key(self):
+        self.test_cache_file()
+
+        self.env.clear_key("THINBOX_MEMORY")
+
+        with self.assertRaises(KeyError) as cm:
+            self.env.get("THINBOX_MEMORY")
+        ex = cm.exception
+        self.assertEqual(ex.args[0], 'THINBOX_MEMORY')
+
 
     def tearDown(self):
         if os.path.exists(test_homedir):

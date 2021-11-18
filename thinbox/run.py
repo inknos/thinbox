@@ -59,12 +59,21 @@ def run():
         tb.copy(args.file, args.dest)
     elif args.command == "env":
         tb = thb.Thinbox()
-        if args.val:
-            tb.env.set(args.var, args.val)
-        elif args.var:
-            tb.env.get(args.var)
+        if args.env_parser == "clear":
+            if args.key:
+                tb.env.clear_key(args.key)
+            else:
+                tb.env.clear()
+        elif args.env_parser == "get":
+            if args.key:
+                tb.env.get(args.key)
+            else:
+                tb.env.print()
+        elif args.env_parser == "set":
+            tb.env.set(args.key, args.value)
         else:
             tb.env.print()
+
 
     elif args.command == "run":
         tb = thb.Thinbox()

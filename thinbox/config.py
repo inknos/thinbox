@@ -361,6 +361,16 @@ class Env(dict):
             json.dump(self.__dict__, outfile, indent=4)
             logging.info("Saved file {}.".format(self.THINBOX_CACHE_FILE))
 
+    def clear(self):
+        """Clear cached keys
+        """
+        if os.path.exists(self.THINBOX_CACHE_FILE):
+            os.remove(self.THINBOX_CACHE_FILE)
+
+    def clear_key(self, key):
+        self.__dict__.pop(key)
+        self.save()
+
     def load_defaults(self):
         """Load and init default values
         """

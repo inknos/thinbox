@@ -144,13 +144,39 @@ def get_parser():
         "env",
         help="print env"
     )
-    env_parser.add_argument(
-        "var",
-        nargs='?',
-        help="var"
+
+    env_subparser = env_parser.add_subparsers(
+        dest="env_parser"
     )
-    env_parser.add_argument(
-        "val",
+    env_clear_parser = env_subparser.add_parser(
+        "clear",
+        help="clear env"
+    )
+    env_clear_parser.add_argument(
+        "key",
+        nargs='?',
+        help="key"
+    )
+    env_get_parser = env_subparser.add_parser(
+        "get",
+        help="get env"
+    )
+    env_get_parser.add_argument(
+        "key",
+        nargs='?',
+        help="key"
+    )
+    env_set_parser = env_subparser.add_parser(
+        "set",
+        help="set env"
+    )
+    env_set_parser.add_argument(
+        "key",
+        nargs='?',
+        help="key"
+    )
+    env_set_parser.add_argument(
+        "value",
         nargs='?',
         help="value"
     )
