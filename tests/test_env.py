@@ -8,10 +8,8 @@ test_dir = os.path.dirname(__file__)
 test_homedir = os.path.join(test_dir, 'home/testuser')
 
 os.environ["HOME"] = test_homedir
-
 os.environ["XDG_CONFIG_HOME"] = os.path.join(test_homedir, ".config")
-os.environ["XDG_CACHE_HOME"] = os.path.join(test_homedir, ".XDG_CACHE_HOMEe")
-
+os.environ["XDG_CACHE_HOME"] = os.path.join(test_homedir, ".cache")
 
 class TestEnv(unittest.TestCase):
 
@@ -20,14 +18,10 @@ class TestEnv(unittest.TestCase):
             shutil.rmtree(test_homedir)
         os.makedirs(test_homedir)
 
-        shutil.copyfile(
-            os.path.join(test_dir, 'config.test.json'),
-            os.path.join(test_homedir, 'config.test.json'))
-
         self.env = Env()
 
     def test_defaults(self):
-        """Run when no config file is specified
+        """Run when no config file exists
         """
         self.assertEqual(
             self.env.THINBOX_CACHE_DIR,
@@ -46,61 +40,84 @@ class TestEnv(unittest.TestCase):
             os.path.expanduser('~/.cache/thinbox/hash')
         )
 
+
     def test_config_file(self):
-        self.env = Env(os.path.expanduser('~/config.test.json'))
-        self.assertTrue(os.path.exists(
-            os.path.expanduser('~/.cache-test')))
-        self.assertEqual(
-            self.env.THINBOX_CACHE_DIR,
-            os.path.expanduser('~/.cache-test/thinbox')
-        )
-        self.assertEqual(
-            self.env.THINBOX_BASE_DIR,
-            os.path.expanduser('~/.cache-test/thinbox/base')
-        )
-        self.assertEqual(
-            self.env.THINBOX_IMAGE_DIR,
-            os.path.expanduser('~/.cache-test/thinbox/images')
-        )
-        self.assertEqual(
-            self.env.THINBOX_HASH_DIR,
-            os.path.expanduser('~/.cache-test/thinbox/hash')
-        )
+        """Run when config file exists
+        """
+        shutil.copyfile(
+            os.path.join(test_dir, 'config.test.json'),
+            os.path.join(test_homedir, '.config/thinbox/config.json'))
+
+        self.env = Env()
+
+        self.test_defaults()
 
         self.assertEqual(
-            self.env.set_key("THINBOX_MEMORY", 2048),
+            self.env.get("THINBOX_MEMORY"),
             2048
         )
+
+
+    def test_cache_file(self):
+        """Run with variables cached
+        """
+        shutil.copyfile(
+            os.path.join(test_dir, 'cache.test.json'),
+            os.path.join(test_homedir, '.cache/thinbox/cache.json'))
+
+        self.env = Env()
+
+        self.test_defaults()
+
         self.assertEqual(
-            self.env.get_key("THINBOX_MEMORY"),
+            self.env.get("THINBOX_MEMORY"),
+            4096
+        )
+
+
+    def test_config_cache_files(self):
+        """Test get variable when config and cache files
+        """
+        shutil.copyfile(
+            os.path.join(test_dir, 'config.test.json'),
+            os.path.join(test_homedir, '.config/thinbox/config.json'))
+
+        shutil.copyfile(
+            os.path.join(test_dir, 'cache.test.json'),
+            os.path.join(test_homedir, '.cache/thinbox/cache.json'))
+
+        self.env = Env()
+
+        self.assertEqual(
+            self.env.get("THINBOX_MEMORY"),
             2048
         )
-        self.assertTrue(os.path.exists(
-            os.path.expanduser('~/.config-test/thinbox/config.json')))
+
 
     def test_get_key(self):
+        """Test get
+        """
+        self.test_cache_file()
+
         self.assertEqual(
-            self.env.get_key("THINBOX_CACHE_DIR"),
-            os.path.expanduser("~/.cache/thinbox")
-        )
-        self.assertEqual(
-            self.env.THINBOX_CACHE_DIR,
-            os.path.expanduser("~/.cache/thinbox")
+            self.env.get("THINBOX_MEMORY"),
+            4096
         )
 
+
     def test_set_key(self):
-        """Test set_key
+        """Test set and create cache file
         """
         self.assertEqual(
-            self.env.set_key("THINBOX_MEMORY", 2048),
+            self.env.set("THINBOX_MEMORY", 2048),
             2048
         )
         self.assertEqual(
-            self.env.get_key("THINBOX_MEMORY"),
+            self.env.get("THINBOX_MEMORY"),
             2048
         )
         self.assertTrue(os.path.exists(
-            os.path.expanduser('~/.config/thinbox/config.json')))
+            os.path.expanduser('~/.cache/thinbox/cache.json')))
 
 
     def tearDown(self):

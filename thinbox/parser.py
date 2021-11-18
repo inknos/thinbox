@@ -42,11 +42,11 @@ def get_parser():
         help="increase output verbosity",
         action="store_true"
     )
-    parser.add_argument(
-        "-c",
-        "--config",
-        help="config file"
-    )
+    # parser.add_argument(
+    #     "-c",
+    #     "--config",
+    #     help="config file"
+    # )
 
     subparsers = parser.add_subparsers(
         title="commands",

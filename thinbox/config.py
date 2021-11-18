@@ -23,25 +23,6 @@ else:
 # dbox executable
 THINBOX = os.path.basename(sys.argv[0])
 
-# config directory according to XDG
-XDG_CONFIG_HOME = os.environ.get(
-    "XDG_CONFIG_HOME", os.path.expanduser("~/.config"))
-THINBOX_CONFIG_DIR = os.path.join(XDG_CONFIG_HOME, "thinbox")
-THINBOX_CONFIG_FILE = os.path.join(THINBOX_CONFIG_DIR, "config.json")
-
-# cache directory according to XDG
-XDG_CACHE_HOME = os.environ.get(
-    "XDG_CACHE_HOME", os.path.expanduser("~/.cache"))
-THINBOX_CACHE_DIR = os.path.join(XDG_CACHE_HOME, "thinbox")
-
-# image directory and hashes
-THINBOX_BASE_DIR = os.environ.get(
-    "THINBOX_BASE_DIR", os.path.join(THINBOX_CACHE_DIR, "base"))
-THINBOX_IMAGE_DIR = os.environ.get(
-    "THINBOX_IMAGE_DIR", os.path.join(THINBOX_CACHE_DIR, "images"))
-THINBOX_HASH_DIR = os.environ.get(
-    "THINBOX_HASH_DIR", os.path.join(THINBOX_CACHE_DIR, "hash"))
-
 # virtual variables
 THINBOX_MEMORY = "1024"
 THINBOX_SSH_OPTIONS = "-o StrictHostKeyChecking=no -o GlobalKnownHostsFile=/dev/null -o UserKnownHostsFile=/dev/null"
@@ -153,25 +134,15 @@ class Env(dict):
     :property THINBOX_MEMORY: Memory size of thinbox domains
     :type THINBOX_MEMORY: int
     """
-    def __init__(self, config=None):
+    def __init__(self):
         super().__init__()
-        # make file optional
-        # if file not found write file
-        if config:
-            self.THINBOX_CONFIG_FILE = config
-            self.load()
-        else:
-            self.THINBOX_CONFIG_DIR = os.path.expanduser('~/.config/thinbox')
-            self.THINBOX_CONFIG_FILE = os.path.expanduser('~/.config/thinbox/config.json')
 
-            if not os.path.exists(self.THINBOX_CONFIG_FILE):
-                self.load_defaults()
-                #self.save()
-            else:
-                self.load()
+        self.load_defaults()
 
-        #self.load()
+        self._create_config_dirs()
         self._create_cache_dirs()
+
+        self.load()
 
     def __setitem__(self, key, item):
         #if key not in ALLOWED_KEYS:
@@ -333,30 +304,30 @@ class Env(dict):
         """
         return self.__dict__['THINBOX_MEMORY']
 
-    def get_key(self, key):
+    def get(self, key):
         """
         """
         return self[key]
 
-    def set_key(self, key, item):
+    def set(self, key, item):
         self[key] = item
         self._create_config_dirs()
         self.save()
         return item
 
     def _printkv(self, key):
-        print(key, "=", self.get_key(key))
+        print(key, "=", self.get(key))
 
-    def get(self, key):
+    def get_key(self, key):
         """Get and dump a key to stdout
 
         :param key: key to dump
         :type key: str
         """
         self._printkv(key)
-        return self.get_key(key)
+        return self.get(key)
 
-    def set(self, key, item):
+    def set_key(self, key, item):
         """Set a key and dump it and save config file
 
         :param key: key to set
@@ -364,7 +335,7 @@ class Env(dict):
 
         :param item: item to set
         """
-        self.set_key(key, item)
+        self.set(key, item)
         self._printkv(key)
         return item
 
@@ -376,22 +347,33 @@ class Env(dict):
     def load(self):
         """Load object from file
         """
-        with open(self.THINBOX_CONFIG_FILE) as json_data_file:
-            self.__dict__ = json.load(json_data_file)
+        if os.path.exists(self.THINBOX_CACHE_FILE):
+            with open(self.THINBOX_CACHE_FILE) as json_data_file:
+                self.__dict__.update(json.load(json_data_file))
+        if os.path.exists(self.THINBOX_CONFIG_FILE):
+            with open(self.THINBOX_CONFIG_FILE) as json_data_file:
+                self.__dict__.update(json.load(json_data_file))
 
     def save(self):
         """Save object to file
         """
-        if not os.path.exists(self.THINBOX_CONFIG_FILE):
-            print("Saved file {}.".format(self.THINBOX_CONFIG_FILE))
-        with open(self.THINBOX_CONFIG_FILE, "w") as outfile:
+        with open(self.THINBOX_CACHE_FILE, "w") as outfile:
             json.dump(self.__dict__, outfile, indent=4)
+            logging.info("Saved file {}.".format(self.THINBOX_CACHE_FILE))
 
     def load_defaults(self):
         """Load and init default values
         """
-        self.THINBOX_CACHE_DIR = os.path.expanduser('~/.cache/thinbox')
-        self.THINBOX_CONFIG_DIR = os.path.expanduser('~/.config/thinbox')
+        # config directory according to XDG
+        XDG_CONFIG_HOME = os.environ.get("XDG_CONFIG_HOME", "~/.config")
+        self.THINBOX_CONFIG_DIR = os.path.join(XDG_CONFIG_HOME, "thinbox")
+        self.THINBOX_CONFIG_FILE = os.path.join(self.THINBOX_CONFIG_DIR, 'config.json')
+
+        # cache directory according to XDG
+        XDG_CACHE_HOME = os.environ.get("XDG_CACHE_HOME", "~/.cache")
+        self.THINBOX_CACHE_DIR = os.path.join(XDG_CACHE_HOME, "thinbox")
+        self.THINBOX_CACHE_FILE = os.path.join(self.THINBOX_CACHE_DIR, 'cache.json')
+
         self.THINBOX_BASE_DIR = os.path.join(self.THINBOX_CACHE_DIR, 'base')
         self.THINBOX_IMAGE_DIR = os.path.join(self.THINBOX_CACHE_DIR, 'images')
         self.THINBOX_HASH_DIR = os.path.join(self.THINBOX_CACHE_DIR, 'hash')

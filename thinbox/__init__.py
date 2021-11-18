@@ -14,9 +14,9 @@ class Thinbox(object):
     :type doms: thinbox.domain.Domain
     """
 
-    def __init__(self, readonly=True, config=None):
+    def __init__(self, readonly=True):
         super().__init__()
-        self._env = Env(config=config)
+        self._env = Env()
         self._readonly = readonly
         self._doms = self._get_all_domains(readonly)
         self._create_cache_dirs()

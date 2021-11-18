@@ -1,4 +1,3 @@
 {
-    "THINBOX_CACHE_DIR": "~/.cache-test/thinbox",
-    "THINBOX_CONFIG_DIR": "~/.config-test/thinbox"
+    "THINBOX_MEMORY": 2048
 }
