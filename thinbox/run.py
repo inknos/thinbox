@@ -48,6 +48,7 @@ def run():
             if args.all:
                 tb.image_remove_all()
             else:
+                print(args.name)
                 tb.image_remove(args.name)
         else:
             tb.image_list()
@@ -81,9 +82,6 @@ def run():
     elif args.command == "enter":
         tb = thb.Thinbox(readonly=False)
         tb.enter(args.name)
-    elif args.command == "remove":
-        tb = thb.Thinbox(readonly=False)
-        tb.remove(args.name)
     elif args.command == "start":
         tb = thb.Thinbox(readonly=False)
         tb.start(args.name)

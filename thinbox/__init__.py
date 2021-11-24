@@ -98,6 +98,7 @@ class Thinbox(object):
         if dom.undefine() == 0:
             logging.debug("Domain {} undefined".format(dom.name))
 
+        print("Domain '{}' removed.".format(dom.name))
         # check if file exists
         filepath = os.path.join(self.env.THINBOX_IMAGE_DIR, name + ".qcow2")
         if os.path.exists(filepath):
@@ -328,7 +329,7 @@ class Thinbox(object):
             logging.error("Domain with name '{}' exists.".format(name))
             sys.exit(1)
 
-        print("Creatin qemu image from '{}'".format(base_name))
+        print("Creating qemu image from '{}'".format(base_name))
         p_qemu = subprocess.Popen([
             'qemu-img', 'create',
             '-f', 'qcow2', '-o',
