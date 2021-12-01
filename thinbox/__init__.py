@@ -113,10 +113,10 @@ class Thinbox(object):
         for d in domains:
             self.remove(d.name)
 
-    def run(self, command, name):
+    def run(self, name, command):
         dom = self._get_dom_from_name(name)
         ssh = create_ssh_connection(dom.ip)
-        run_ssh_command(ssh, command)
+        run_ssh_command(ssh, " ".join(command))
 
     def pull_url(self, url, skip=True):
         """Download a qcow2 image file from url

@@ -78,7 +78,7 @@ def run():
 
     elif args.command == "run":
         tb = thb.Thinbox()
-        tb.run(args.cmd, args.name)
+        tb.run(args.name, args.cmd)
     elif args.command == "enter":
         tb = thb.Thinbox(readonly=False)
         tb.enter(args.name)
