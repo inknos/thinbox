@@ -195,7 +195,7 @@ def download_file(url, filepath):
     return True
 
 
-def printd(text, delay=.5):
+def printd(text, condition=True, delay=.8):
     """Prints string with ending dots
 
     :param text: String to print
@@ -207,7 +207,7 @@ def printd(text, delay=.5):
     print(end=text)
     n_dots = 0
 
-    while True:
+    while condition:
         if n_dots == 3:
             print(end='\b\b\b', flush=True)
             print(end='   ', flush=True)

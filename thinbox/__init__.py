@@ -375,10 +375,11 @@ class Thinbox(object):
         return domains[0]
 
     def _wait_for_boot(self, dom):
-        while dom.ip == "":
-            printd("domain '{}' is starting".format(dom.name))
-            sleep(1)
-            dom.ip
+        # TODO implement timeout
+        if dom.ip == "":
+            print("Domain '{}' is starting.".format(dom.name))
+            while dom.ip == "":
+                sleep(1)
 
     def _get_all_domains(self, readonly):
         conn = domain.LibVirtConnection(readonly)
@@ -420,18 +421,23 @@ class Thinbox(object):
             os.makedirs(self.env.THINBOX_BASE_DIR)
         download_file(url, filepath)
         # TODO download hash
-        # this works for rhel
+        # this works for only for rhel
         hashpath = os.path.join(self.env.THINBOX_HASH_DIR, filename)
-        for ext in RHEL_BASE_HASH:
-            download_file(url + "." + ext, hashpath + "." + ext)
+        ext = "SHA256SUM"
+        download_file(url + "." + ext, hashpath + "." + ext)
         if self.check_hash(filename, "sha256"):
             print("Image downloaded, verified, and ready to use")
         else:
             print("Image downloaded and ready to use but not verified.")
 
     def _check_hash(self, filename, ext, hashfunc):
-        """"This function returns the SHA-1 hash
-        of the file passed into it"""
+        """"This function checks the hash of a file
+        with some hash contained in a filename
+
+        hash file should be in format
+        # NAME: NUM bytes
+        HASH_TYPE (NAME) = HASH
+        """
 
         h = hashfunc
 

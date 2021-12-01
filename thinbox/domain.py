@@ -70,6 +70,7 @@ class Domain(object):
         :return: `1` if active, `0` otherwise
         :rtype: int
         """
+        self._active = self._dom.isActive()
         return self._active
 
     @property
@@ -191,20 +192,18 @@ class Domain(object):
         """
         if self.active == 0:
             return
-        if self._addr == {}:
-            try:
-                self._addr = self._dom.interfaceAddresses(
-                    libvirt.VIR_DOMAIN_INTERFACE_ADDRESSES_SRC_ARP
-                )
-            except libvirt.libvirtError as e:
-                logging.debug("libvirt: {}".format(e))
+        try:
+            self._addr = self._dom.interfaceAddresses(
+                libvirt.VIR_DOMAIN_INTERFACE_ADDRESSES_SRC_ARP
+            )
+        except libvirt.libvirtError as e:
+            logging.debug("libvirt: {}".format(e))
 
     def _set_ip_from_addr(self):
         """Sets new IP if empty str
         """
         self._set_addr()
         if self._addr == {}:
-            self._ip = ""
             return
         tapx = list((self._addr))[0]
         self._ip = self._addr[tapx]['addrs'][0]['addr']
