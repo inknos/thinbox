@@ -1,6 +1,6 @@
 %define debug_package %{nil}
 %define name thinbox
-%define version 0.3.0
+%define version 0.4.0
 %define release 1
 
 Name:           %{name}
@@ -49,6 +49,10 @@ install -Dm0644 build/man/%{name}.1 %{buildroot}/%{_mandir}/man1/%{name}.1
 
 
 %changelog
+* Wed Dec 01 2021 Nicola Sella <nsella@redhat.com> - 0.4.0-1
+- Add man documentation in spec
+- Fix minor bugs
+
 * Mon Nov 15 2021 Nicola Sella <nsella@redhat.com> - 0.3.0-1
 - Add documentation in Sphinx
 - Add env command
