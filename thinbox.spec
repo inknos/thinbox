@@ -34,10 +34,11 @@ Requires:       libvirt-client
 
 %build
 python3 setup.py build
-sphinx-build -b man -c source source/man/man1/ build/%{_mandir}/man1
+sphinx-build -b man -c source source/man/man1/ build/man
 
 %install
 python3 setup.py install --single-version-externally-managed -O1 --root=$RPM_BUILD_ROOT --record=INSTALLED_FILES
+install -Dm0644 build/man/%{name}.1 %{buildroot}/%{_mandir}/man1/%{name}.1
 
 
 %files -f INSTALLED_FILES
