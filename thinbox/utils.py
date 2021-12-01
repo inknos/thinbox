@@ -157,6 +157,13 @@ def download_file(url, filepath):
     :return: True if file is successfully downloaded
     :rtype: bool
     """
+    def sizeof_fmt(num, suffix="B"):
+        for unit in ["", "Ki", "Mi", "Gi", "Ti", "Pi", "Ei", "Zi"]:
+            if abs(num) < 1024.0:
+                return f"{num:3.1f}{unit}{suffix}"
+            num /= 1024.0
+        return f"{num:.1f}Yi{suffix}"
+
     if not _url_is_valid(url):
         logger.warning("URL may be in not valid format.")
 
@@ -167,7 +174,8 @@ def download_file(url, filepath):
     with open(filepath, 'wb') as f:
         response = requests.get(url, stream=True)
         total = response.headers.get('content-length')
-
+        width = 40
+        print(os.path.basename(filepath))
         if total is None:
             f.write(response.content)
         else:
@@ -177,10 +185,11 @@ def download_file(url, filepath):
                     chunk_size=max(int(total / 1000), 1024 * 1024)):
                 downloaded += len(data)
                 f.write(data)
-                done = int(50 * downloaded / total)
-                sys.stdout.write('\r{}:\t[{}{}]'.format(
-                    os.path.basename(filepath),
-                    '█' * done, '.' * (50 - done)))
+                done = int(width * downloaded / total)
+                sys.stdout.write('\r    |{}{}| {} / {}'.format(
+                    '█' * done, '.' * (width - done),
+                    sizeof_fmt(downloaded),
+                    sizeof_fmt(total)))
                 sys.stdout.flush()
     sys.stdout.write('\n')
     return True

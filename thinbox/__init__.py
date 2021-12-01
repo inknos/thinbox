@@ -407,7 +407,6 @@ class Thinbox(object):
             tag,
             "compose/BaseOS/x86_64/images/"
         )
-        print(url)
         page = requests.get(url)
         soup = BeautifulSoup(page.content, 'html.parser')
         links = soup.select("a")
