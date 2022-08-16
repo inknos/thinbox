@@ -126,6 +126,7 @@ def run():
             else:
                 tb.list()
         elif args.vm_parser == "remove" or args.vm_parser == "rm":
+            tb = thb.Thinbox(readonly=False)
             if args.all:
                 tb.remove_all()
             else:

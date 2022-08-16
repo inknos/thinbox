@@ -234,9 +234,12 @@ def os_variant(image):
         elif "8.5" in image:
             return "rhel8.5"
     elif "fedora" in image or "Fedora" in image:
-        if "34" in image:
-            return "fedora34"
-        elif "35" in image:
-            return "feora35"
+        for i in range(30,60):
+            if "fedora" + str(i) in image:
+                return "fedora" + str(i)
+            elif "fedora-" + str(i) in image:
+                return "fedora" + str(i)
+            else:
+                continue
     else:
         return "none"
