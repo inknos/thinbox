@@ -62,7 +62,9 @@ def is_virt_enabled():
     env = os.environ.copy()
     env["LC_LANG"] = "C"
     out = subprocess.run(["lscpu"], env=env, stdout=subprocess.PIPE)
-    return "VT-x" in str(out.stdout)
+    output = str(out.stdout)
+    # VT-x is Intel, SVM is AMD
+    return "VT-x" in output or "SVM" in output
 
 
 def create_ssh_connection(hostname, username="root", port=22):
