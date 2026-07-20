@@ -272,7 +272,7 @@ class LibVirtConnection(object):
         try:
             dom = self.conn.lookupByName(name)
         except libvirt.libvirtError as e:
-            logging.error("libvirt: {}").format(e)
+            logging.error("libvirt: {}".format(e))
             sys.exit(1)
         return dom
 
