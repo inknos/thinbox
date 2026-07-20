@@ -89,7 +89,8 @@ def run():
         tb = thb.Thinbox(readonly=False)
         if args.force:
             tb.stop(args.name, "--mode=acpi")
-        tb.stop(args.name)
+        else:
+            tb.stop(args.name)
     elif args.command == "list" or args.command == "ls":
         tb = thb.Thinbox()
         if args.all:
