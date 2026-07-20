@@ -374,12 +374,26 @@ class Thinbox(object):
                 "Found more than one domain with name '{}'".format(name))
         return domains[0]
 
-    def _wait_for_boot(self, dom):
-        # TODO implement timeout
+    def _wait_for_boot(self, dom, timeout=120):
+        """Wait for domain to boot and obtain an IP address.
+
+        :param dom: Domain to wait for
+        :type dom: thinbox.domain.Domain
+
+        :param timeout: Maximum seconds to wait before giving up, defaults to 120
+        :type timeout: int, optional
+        """
         if dom.ip == "":
             print("Domain '{}' is starting.".format(dom.name))
+            elapsed = 0
             while dom.ip == "":
+                if elapsed >= timeout:
+                    logging.error(
+                        "Domain '{}' did not get an IP within {} seconds.".format(
+                            dom.name, timeout))
+                    sys.exit(1)
                 sleep(1)
+                elapsed += 1
 
     def _get_all_domains(self, readonly):
         conn = domain.LibVirtConnection(readonly)
