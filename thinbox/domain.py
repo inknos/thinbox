@@ -168,7 +168,7 @@ class Domain(object):
         state, reason = self._dom.state()
 
         if state == libvirt.VIR_DOMAIN_NOSTATE:
-            self._state == "nostate"
+            self._state = "nostate"
         elif state == libvirt.VIR_DOMAIN_RUNNING:
             self._state = "running"
         elif state == libvirt.VIR_DOMAIN_BLOCKED:
