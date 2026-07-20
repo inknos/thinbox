@@ -1,7 +1,5 @@
 import argparse
 
-import thinbox as thb
-
 from thinbox.config import IMAGE_TAGS
 
 try:
@@ -27,10 +25,12 @@ class Formatter(argparse.HelpFormatter):
 
 def get_parser():
     """
-    Returns parser
-    """
+    Returns parser.
 
-    tb = thb.Thinbox()
+    Note: choices= for VM names and base images are not restricted at parse
+    time to avoid opening a libvirt connection on every invocation (including
+    --help). Validation happens inside the Thinbox methods.
+    """
 
     parser = argparse.ArgumentParser(  # usage="%(prog)s <command> [opts] [args]",
         description="Thinbox is a tool for..",
@@ -102,7 +102,6 @@ def get_parser():
     create_parser.add_argument(
         "image",
         metavar="IMG_NAME",
-        choices=tb.base_images,
         help="Name of image already downloaded"
     )
     create_parser.add_argument(
@@ -131,7 +130,6 @@ def get_parser():
     )
     run_parser.add_argument(
         "name",
-        choices=[d.name for d in tb.doms],
         metavar="VM_NAME",
         help="name of VM"
     )
@@ -235,7 +233,6 @@ def get_parser():
     remove_parser_mg.add_argument(
         "name",
         nargs="?",
-        choices=[d.name for d in tb.doms],
         help="Remove a VM of name"
     )
     # image
@@ -268,7 +265,6 @@ def get_parser():
     image_remove_parser_mg.add_argument(
         "name",
         nargs="?",
-        choices=tb.base_images,
         help="Remove a VM of name"
     )
     # vm
@@ -332,7 +328,6 @@ def get_parser():
     vm_remove_parser_mg.add_argument(
         "name",
         nargs="?",
-        choices=[d.name for d in tb.doms],
         help="Remove a VM of name"
     )
     # enter
@@ -343,7 +338,6 @@ def get_parser():
     enter_parser.add_argument(
         "name",
         metavar="VM_NAME",
-        choices=[d.name for d in tb.doms],
         help="name of the VM to enter"
     )
     # start
@@ -354,7 +348,6 @@ def get_parser():
     start_parser.add_argument(
         "name",
         metavar="VM_NAME",
-        choices=[d.name for d in tb.doms],
         help="name of the VM to start"
     )
     # stop
@@ -365,7 +358,6 @@ def get_parser():
     stop_parser.add_argument(
         "name",
         metavar="VM_NAME",
-        choices=[d.name for d in tb.doms],
         help="name of the VM to stop"
     )
     stop_parser_mg = stop_parser.add_mutually_exclusive_group(required=False)
