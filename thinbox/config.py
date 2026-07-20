@@ -2,7 +2,6 @@ import os
 import sys
 import json
 import logging
-import yaml
 
 from sysconfig import get_config_var
 
