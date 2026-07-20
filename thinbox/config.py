@@ -170,9 +170,6 @@ class Env(dict):
     def __delitem__(self, key):
         del self.__dict__[key]
 
-    def clear(self):
-        return self.__dict__.clear()
-
     def copy(self):
         return self.__dict__.copy()
 
