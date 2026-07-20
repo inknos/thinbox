@@ -167,7 +167,7 @@ def download_file(url, filepath):
         return f"{num:.1f}Yi{suffix}"
 
     if not _url_is_valid(url):
-        logger.warning("URL may be in not valid format.")
+        logging.warning("URL may be in not valid format.")
 
     # check file exist
     if os.path.exists(filepath):
